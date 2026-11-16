@@ -29,3 +29,38 @@ module.exports = async (req, res) => {
   const now = Date.now();
   try {
     if (b.op === 'emit') {
+            const topic = String(b.topic || '').replace(/[^a-z0-9_-]/gi, '').slice(0, 16);
+      const raw = JSON.stringify(b.data === undefined ? null : b.data);
+      if (!topic || raw.length > 6000) return res.status(400).json({ error: 'bad message' });
+      const id = await cmd(['INCR', kS]);
+      await pipe([
+        ['RPUSH', kM, JSON.stringify({ id, peer, topic, data: b.data === undefined ? null : b.data })],
+        ['LTRIM', kM, '-60', '-1'], ['EXPIRE', kM, '7200'], ['EXPIRE', kS, '7200'],
+      ]);
+      return res.status(200).json({ id });
+    }
+    if (b.op === 'leave') { await cmd(['HDEL', kP, peer]); return res.status(200).json({}); }
+    if (b.op === 'poll') {
+      const cs = [];
+      if (b.presence !== undefined && b.presence !== null) {
+        cs.push(['HSET', kP, peer, JSON.stringify({ p: b.presence, t: now })]);
+        if (b.first) cs.push(['EXPIRE', kP, '7200']);
+      }
+      cs.push(['HGETALL', kP], ['LRANGE', kM, '-60', '-1']);
+      const out = await pipe(cs);
+      const all = out[out.length - 2] || [], list = out[out.length - 1] || [];
+      const peers = [];
+      for (let i = 0; i + 1 < all.length; i += 2) {
+        try { const v = JSON.parse(all[i + 1]); if (now - v.t < 9000) peers.push({ peer: all[i], presence: v.p }); } catch (e) {}
+      }
+      const msgs = list.map(s => { try { return JSON.parse(s); } catch (e) { return null; } }).filter(Boolean);
+      const seq = msgs.reduce((a, m) => Math.max(a, m.id), 0);
+      const since = +b.since;
+      return res.status(200).json({ peers, seq, msgs: since >= 0 ? msgs.filter(m => m.id > since) : [] });
+    }
+    return res.status(400).json({ error: 'bad op' });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: String(e.message || e).slice(0, 160) });
+  }
+};
