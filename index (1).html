@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ScamOS: Call Center</title>
+<style>
+:root{--bg:#0e1a2b;--card:#fff;--tx:#1b1b1b;--mu:#6b6b6b;--ac:#e8590c;--ok:#2b8a3e;--bd:#d9dee6;--me:#ffe8cc;--ai:#e9edf2;--bad:#c92a2a;--tb:#1c5d99;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--card:#1e2430;--tx:#eceae4;--mu:#9aa3b2;--ac:#ff8a4c;--ok:#69db7c;--bd:#38404f;--me:#4a3320;--ai:#2a3140;--bad:#ff6b6b;--tb:#2a6fb5;color-scheme:dark}}
+:root[data-theme="dark"]{--card:#1e2430;--tx:#eceae4;--mu:#9aa3b2;--ac:#ff8a4c;--ok:#69db7c;--bd:#38404f;--me:#4a3320;--ai:#2a3140;--bad:#ff6b6b;--tb:#2a6fb5;color-scheme:dark}
+html,body{margin:0;height:100%;height:100dvh;background:var(--bg);font-family:system-ui,-apple-system,"Noto Sans Thai",sans-serif;color:var(--tx)}
+body{max-width:600px;margin:0 auto;display:flex;flex-direction:column;overflow:hidden}
+#desk{position:relative;flex:1;min-height:0;overflow:hidden;background:linear-gradient(135deg,#1d6fb8,#0b3c6b);touch-action:pan-y}
+.win{position:absolute;width:min(340px,calc(100% - 12px));background:var(--card);border:1px solid var(--bd);border-radius:10px;box-shadow:0 6px 22px #0006;overflow:hidden;font-size:14px}
+.tb{background:var(--tb);color:#fff;padding:6px 10px;display:flex;justify-content:space-between;cursor:move;touch-action:none;user-select:none;font-weight:600}
+.tb b{cursor:pointer;padding:0 6px}
+.bd{padding:9px}
+.mu{color:var(--mu);font-size:12px}
+button,input{font:inherit;color:var(--tx)}
+button{border:1px solid var(--bd);background:var(--card);border-radius:8px;padding:7px 10px;cursor:pointer}
+button.pri{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:600}
+button:disabled,input:disabled{opacity:.45}
+input[type=text]{width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid var(--bd);background:var(--card)}
+.bar{height:7px;border-radius:4px;background:var(--bd);overflow:hidden;margin:3px 0 6px}.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+.bar.h i{background:var(--bad)}
+.row{display:flex;gap:6px;align-items:center}.row>input{flex:1;min-width:0}
+#chat{height:118px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;background:var(--bg);background:color-mix(in srgb,var(--ai) 40%,var(--card));border-radius:8px;padding:5px;margin:6px 0}
+.m{max-width:88%;padding:5px 9px;border-radius:10px;white-space:pre-wrap;user-select:text}
+.m.me{align-self:flex-end;background:var(--me)}.m.ai{align-self:flex-start;background:var(--ai)}.m.n{align-self:center;color:var(--mu);font-size:12px}
+.av{font-size:30px;text-align:center}
+.stp{padding:5px 8px;border-radius:7px;background:var(--ai);margin:3px 0;font-size:13px}.stp.ok{background:#2b8a3e33}.stp.ok::before{content:"✓ "}
+#tray{background:#0b1220;color:#dfe6f1;padding:7px 10px;display:flex;gap:8px;align-items:center;font-size:12px;flex-wrap:wrap}
+#tray button{background:#1c2a44;color:#fff;border-color:#2c3e60;padding:5px 9px}
+#tray .s{margin-left:auto;text-align:right}
+#inc{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0008;z-index:9999}
+#inc>div{background:#0f1420;color:#fff;padding:20px 26px;border-radius:16px;text-align:center;min-width:220px}
+#inc .row{justify-content:center;margin-top:12px;gap:22px}#inc button{border-radius:50%;width:54px;height:54px;font-size:22px;border:0}
+.hide{display:none!important}
+#icons{position:absolute;right:6px;top:6px;display:flex;flex-direction:column;gap:8px}
+#icons button{background:#ffffff22;color:#fff;border:1px solid #ffffff55;font-size:12px;width:66px;line-height:1.3}
+#toasts{position:absolute;left:6px;right:6px;bottom:6px;display:flex;flex-direction:column;gap:4px;pointer-events:none;z-index:9998}
+.t{background:#0f1420e6;color:#fff;border-radius:8px;padding:6px 10px;font-size:12px}
+.pick{border-left:3px solid var(--ac);padding-left:8px;margin:7px 0}
+.m.ai.e-angry{background:#c92a2a33;font-weight:700;font-size:15px}.m.ai.e-happy{background:#ffd43b44}.m.ai.e-excited{background:#ff922b44;font-weight:600}.m.ai.e-scared{background:#74c0fc44;font-style:italic}.m.ai.e-sad{background:#868e9644}.m.ai.e-cold{background:#a5d8ff44}.m.ai.e-calm{background:#b2f2bb44}
+#dark{position:absolute;inset:0;z-index:99999;background:radial-gradient(circle at 50% 28%,#0f1a2b 0%,#02040a 72%);display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 10px;overflow:auto;color:#eee}
+#mon{width:100%;max-width:360px;flex:none;border:3px solid #1a2233;border-radius:12px;background:#000;box-shadow:0 0 40px #1c5d9955,inset 0 0 30px #000;overflow:hidden}
+#mhd{display:flex;justify-content:space-between;gap:6px;font:11px ui-monospace,Menlo,monospace;color:#9fe8b0;padding:4px 8px;border-bottom:1px solid #1a2233}
+#rec{color:#ff4d4d;animation:bl 1s steps(2) infinite}@keyframes bl{50%{opacity:.15}}
+#mscr{position:relative;height:215px;overflow:hidden;background:#0a0f18}
+#mscr.gl{animation:gl .35s steps(4)}@keyframes gl{0%{transform:translateX(-4px);filter:hue-rotate(40deg) brightness(1.6)}50%{transform:translateX(3px);filter:saturate(2)}100%{transform:none;filter:none}}
+#mchat{display:flex;flex-direction:column;gap:5px;padding:8px 8px 26px;height:100%;box-sizing:border-box;overflow-y:auto;justify-content:flex-end}
+.fm{max-width:86%;padding:5px 9px;border-radius:10px;font-size:13px;color:#e8eef7;animation:pop .2s}
+.fm.me{align-self:flex-end;background:#6b4a2a}.fm.ai{align-self:flex-start;background:#2a3140}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}}
+#mcap{position:absolute;left:0;right:0;bottom:0;background:#000c;color:#ffd43b;font:12px ui-monospace,Menlo,monospace;padding:4px 8px;min-height:18px}
+#mcap.g{color:#8ce99a}#mcap.b{color:#ff8787}
+#scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,#0000 0 2px,#0004 2px 3px)}
+#boss{width:100%;max-width:360px;flex:none;display:flex;gap:10px;align-items:flex-start}
+#bsil{font-size:46px;line-height:1;filter:brightness(.3) contrast(1.3) drop-shadow(0 0 12px #000)}
+#bsub{flex:1;font-size:15px;line-height:1.5;min-height:76px;white-space:pre-wrap;color:#e9ecef}
+#bsub.praise{color:#8ce99a;font-weight:600}#bsub.roast{color:#ff8787;font-weight:700}
+#bres{font-weight:700;text-align:center;min-height:20px}
+#bctl{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+#bctl button{background:#1c2a44;color:#fff;border-color:#2c3e60}
+#bctl button.pri{background:var(--ac);border-color:var(--ac)}
+#home{position:absolute;inset:0;z-index:100000;background:linear-gradient(160deg,#0b3c6b,#0e1a2b);display:flex;align-items:center;justify-content:center;padding:14px;overflow:auto;box-sizing:border-box}
+#home .hc{width:100%;max-width:380px;background:var(--card);border-radius:14px;padding:16px;text-align:center;box-shadow:0 10px 40px #0008}
+#home .hb{width:100%;margin-top:8px}#home select{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px;width:100%;box-sizing:border-box}
+#mpl{text-align:left}body.home #tray{display:none}
+#tier{width:100%;max-width:360px;flex:none;border:3px solid #1a2233;border-radius:12px;background:#000;overflow:hidden;box-shadow:0 0 40px #1c5d9955}
+#tier .tr{display:flex;min-height:46px;border-bottom:3px solid #000;background:#1a1a1a}#tier .tl{width:46px;flex:none;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#111}
+#tier .tc{flex:1;display:flex;flex-wrap:wrap;gap:5px;padding:5px;align-content:center}
+#tier .chip{background:#2b2f3a;color:#fff;border-radius:6px;padding:3px 8px;text-align:center;font-size:12px;line-height:1.25;animation:pop .25s}#tier .chip small{display:block;color:#8ce99a;font-weight:700}
+#tier .chip.me{outline:2px solid #ffd43b}#tier .chip.hl{outline:2px solid #ff6b6b;animation:shk .3s}@keyframes shk{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+</style></head><body class="home">
+<div id="desk">
+ <div id="home"><div class="hc">
+  <div class="av">📞</div><b style="font-size:18px">ScamOS: Call Center</b>
+  <div class="mu" style="margin:8px 0 12px;text-align:left">รับสาย คุยอย่างเดียว ไม่มีต่อรองราคา เหยื่อโดนหลอกให้เลขบัตร/โค้ดได้ แม้ไม่ค่อยไว้ใจ ได้เลขแล้วกรอกให้ถูก แล้วลองถอนเอง เหยื่อมีเงินในบัญชีเท่าไหร่ไม่รู้ ถ้าใส่เกินจะถูกปฏิเสธ ถอนสำเร็จแล้วเหยื่อบางคนเห็น SMS ธนาคารแล้วอายัดบัตร บางคนไม่ดูมือถือ ยิ่งถอนเยอะ Heat ยิ่งพุ่ง เลือกความยาวกะได้ รับสายและวางสายได้ตลอดจนหมดเวลา 8 วินาทีสุดท้ายระบบจะตัดสาย ตัวละครล้อเลียนทั้งหมด ไม่ใช่คำแนะนำโกงจริง</div>
+  <div class="mu" style="text-align:left">⏱ ความยาวกะ</div><select id="hdur"><option value="8">8 นาที</option><option value="12" selected>12 นาที</option><option value="16">16 นาที</option><option value="20">20 นาที</option><option value="24">24 นาที</option></select><div class="mu" id="hdh" style="margin:4px 0 10px;text-align:left"></div>
+  <div id="hm"><button class="pri hb" id="hsolo">▶ เล่นคนเดียว</button><button class="hb" id="hmulti">👥 เล่นกับเพื่อน</button></div>
+  <div id="hmp" class="hide">
+   <div id="mpj" style="text-align:left"><div class="mu">ชื่อเล่น</div><input type="text" id="mpn" maxlength="14" placeholder="ชื่อของคุณ" autocomplete="off">
+   <div class="mu" style="margin-top:6px">รหัสห้อง (เพื่อนใส่รหัสเดียวกัน)</div><div class="row"><input type="text" id="mpc" maxlength="12" placeholder="เช่น abcd" autocomplete="off"><button id="mpr">🎲</button></div>
+   <div class="mu" style="margin-top:6px">จำนวนผู้เล่นสูงสุด (ใช้ตอนคุณเป็นคนสร้างห้อง)</div><select id="mpmx"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select>
+   <button class="pri hb" id="mpgo">เข้าห้อง</button></div>
+   <div id="mpi" class="hide"><div class="mu" id="mph"></div><div id="mpl" style="margin-top:6px"></div>
+   <div class="row" style="margin-top:8px"><button id="mpq" style="flex:1">✋ พร้อมแล้ว</button><button class="pri hide" id="mps" style="flex:1">▶ เริ่มเล่นเกม</button></div><button class="hb" id="mpx">ออกจากห้อง</button></div>
+   <div class="mu" id="mpe" style="margin-top:6px"></div><button class="hb" id="hback">← กลับ</button>
+  </div>
+  <div id="hnoai" class="mu hide" style="margin-top:8px">ต้องเปิดใน claude.ai เพื่อใช้ AI</div>
+ </div></div>
+ <div id="icons"><button data-o="w-ph">📞<br>โทรศัพท์</button><button data-o="w-cd">💳<br>บัตร</button><button data-o="w-rv">🖥️<br>รีโมต</button></div>
+ <div class="win" id="w-ph" style="left:6px;top:6px"><div class="tb"><span>📞 โทรศัพท์</span><b class="x">×</b></div><div class="bd">
+  <div class="av" id="av">📵</div><div style="text-align:center;font-weight:700" id="who">ไม่มีสายเรียกเข้า</div>
+  <div class="mu">ความไว้ใจของผู้โทร <b id="tp"></b></div><div class="bar"><i id="b-t"></i></div>
+  <div id="chat"></div>
+  <div class="row"><input type="text" id="inp" placeholder="พิมพ์สิ่งที่จะพูด..." autocomplete="off"><button id="mic" class="hide">🎤</button><button class="pri" id="snd">ส่ง</button></div>
+  <div class="row" style="margin-top:6px"><button id="hang" style="flex:1">วางสาย</button></div>
+ </div></div>
+ <div class="win" id="w-cd" style="left:6px;top:372px"><div class="tb"><span>💳 Kolkata Pay</span><b class="x">×</b></div><div class="bd">
+  <div class="stp" id="s1">ผู้โทรยื่นเลขบัตร/โค้ดให้</div>
+  <div class="stp" id="s2">กรอกเลขบัตร/โค้ดให้ถูกต้อง</div>
+  <div class="stp" id="s3">ถอนเงิน (ไม่รู้ยอดคงเหลือ ลองใส่เองเลย)</div>
+  <div class="mu" style="margin-top:6px">เลขบัตร/โค้ด 12 หลัก (จากที่ผู้โทรพูด)</div>
+  <div class="row"><input type="text" inputmode="numeric" id="cn" placeholder="0000-0000-0000"><button class="pri" id="conf">ยืนยัน</button></div>
+  <div class="mu" style="margin-top:8px">จำนวนที่จะถอน ($)</div>
+  <div class="row"><input type="text" inputmode="numeric" id="am" placeholder="เช่น 300"><button class="pri" id="swipe">ถอน</button></div>
+  <div class="mu" id="tk" style="margin-top:6px"></div>
+  <div class="mu">ใส่เกินยอดจะถูกปฏิเสธ (พลาด 3 ครั้งบัตรโดนล็อก) ถอนสำเร็จแล้วธนาคารส่ง SMS ไปหาเหยื่อ ถ้าเขาเปิดดูก็จะอายัดบัตรทันที ยอดน้อยมักไม่มีใครสังเกต</div>
+ </div></div>
+ <div class="win hide" id="w-rv" style="left:6px;top:150px"><div class="tb"><span>🖥️ RemoteView (สมมติ)</span><b class="x">×</b></div><div class="bd">
+  <div class="mu" id="rvs"></div>
+  <div class="row" style="margin-top:6px"><button class="pri" id="rvask" style="flex:1">ขอรหัสเข้าเครื่อง</button></div>
+  <div class="row" style="margin-top:6px"><input type="text" inputmode="numeric" id="rvc" placeholder="รหัส 9 หลักจากเหยื่อ"><button class="pri" id="rvgo">เชื่อมต่อ</button></div>
+  <div id="rvd" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px"></div>
+  <div class="mu" id="rvi" style="margin-top:6px"></div>
+ </div></div>
+ <div class="win hide" id="w-bs" style="left:6px;top:6px;z-index:9000"><div class="tb"><span>🧑‍💼 บอสประเมินผล</span><b class="x">×</b></div><div class="bd" id="bs" style="max-height:62vh;overflow:auto"></div></div>
+ 
+ <div id="inc" class="hide"><div><div class="av" id="ia"></div><b id="in"></b><div class="mu">สายเรียกเข้า...</div><div class="row"><button style="background:#e03131" id="dec">✕</button><button style="background:#2f9e44" id="acc">📞</button></div></div></div>
+ <div id="dark" class="hide"><div id="mon"><div id="mhd"><span id="rec">● REC</span><span id="mcam"></span><span id="mtc"></span></div><div id="mscr"><div id="mchat"></div><div id="mcap"></div><div id="scan"></div></div></div><div id="tier" class="hide"></div><div id="boss"><div id="bsil">🧑‍💼</div><div id="bsub"></div></div><div id="bres"></div><div id="bctl"></div></div>
+ <div id="toasts"></div>
+</div>
+<div id="tray"><button data-o="w-ph">📞</button><button data-o="w-cd">💳</button><button data-o="w-rv">🖥️</button><button id="msnd">🔊</button><span id="clk"></span><span id="hl">🔥0%</span><span class="s" id="st"></span></div>
+<script>
+/* ตั้งค่า: ถ้าเปิดนอก claude.ai เกมจะเรียก AI ผ่านเซิร์ฟเวอร์ของคุณที่ AI_ENDPOINT (ดู server.js) */
+let AI_ENDPOINT='/api/chat';
+try{const q=new URLSearchParams(location.search).get('api');if(q)localStorage.setItem('scamos_api',q);AI_ENDPOINT=localStorage.getItem('scamos_api')||AI_ENDPOINT}catch(e){}
+if(!window.claude){window.claude={use:async n=>{
+  if(n!=='sample')return null;
+  return async input=>{
+    const prompt=typeof input==='string'?input:input.map(m=>m.role+': '+m.content).join('\n');
+    const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
+    if(!r.ok)throw new Error('ai '+r.status);
+    const j=await r.json();return{text:String(j.text||''),truncated:false};
+  };
+}}}
+</script>
+<script>
+const P=[
+{n:'โจ้กบูด',e:'🤡',b:450,t:'ตัวตลกป่วนเมือง หัวเราะบ่อย อารมณ์แปรปรวน ชอบเรื่องสนุก เบื่อเร็ว',o:'ฮ่า ๆ ไอ้สัส ใครโทรมาวะ? ว่ามา กูกำลังเบื่อพอดี อย่าพูดเหี้ยไรให้กูเบื่อนะ'},
+{n:'แบทกาย',e:'🦇',b:1800,t:'เศรษฐีขรึม พูดน้อย ระแวงทุกอย่าง ชอบตรวจสอบ เชื่อยากมาก ถ้าเหตุผลแน่นจึงยอม',o:'...ใครให้เบอร์กูกับมึง พูดมา ก่อนที่กูจะเอาเรื่อง'},
+{n:'พี่พนม',e:'🐘',b:140,t:'นักบู๊ใจร้อนตามหาช้างที่หายไป พูดแต่ "ช้างกูอยู่ไหน" ไว้ใจทันทีถ้าอีกฝ่ายพูดเรื่องช้างหรืออ้างว่าช่วยหา แต่ไม่สนเรื่องอื่น',o:'ฮัลโหล! ไอ้สัส ช้างกูอยู่ไหน?! มึงเห็นช้างกูไหม!'},
+{n:'King of Course',e:'👹',b:380,t:'จอมคำสาปจองหอง ตามหานิ้วมือตัวเอง 20 นิ้ว หยิ่งแต่หลงเชื่อถ้าอีกฝ่ายบอกว่ามีนิ้วให้',o:'หึ... ไอ้ต่ำช้าอย่างมึงกล้าโทรหากูรึ? มีนิ้วของกูอยู่ในมือมึงหรือเปล่า ถ้าไม่มีก็ไสหัวไป'},
+{n:'ไอรอนมัน',e:'🦾',b:3000,t:'เศรษฐีนักประดิษฐ์ตัวเอง ขี้โม้ ชอบคุยเรื่องเทคโนโลยีและชุดเกราะ เชื่อคนที่ยกยอเขา แต่เกลียดโดนสอน',o:'ว่ามาเลย กูมีเวลาสามสิบวินาที ก่อนจาร์วิชจะตัดสาย อย่าพูดเรื่องไร้สาระ',s:'โอ้อวด กวนตีน แซะเก่ง ถ้าโดนหลอกจะด่าตรง ๆ มึงกู ประชดหนักมาก',f:'calm'},
+{n:'สไปเดอร์หมัน',e:'🕷️',b:60,t:'เด็กหนุ่มฮีโร่ข้างบ้านที่จนมาก ประหม่า สุภาพ พูดติดอ่างนิด ๆ ห่วงป้าเมย์ เชื่อง่ายถ้าอ้างว่าช่วยป้า',o:'อะ...อ่า ฮัลโหลครับ? ผมกำลังรีบไปส่งพิซซ่าอยู่นะครับ',s:'สุภาพ ประหม่า ถ้าโดนหลอกจะเสียใจแล้วขอเงินคืนเบา ๆ',f:'calm'},
+{n:'เอลซ่า เฟรชชี่',e:'❄️',b:700,t:'ราชินีน้ำแข็งเย็นชา ดราม่า ไม่ชอบให้ใครแตะต้อง เชื่อถ้าเรื่องเกี่ยวกับการปล่อยวางหรือน้องสาว',o:'อย่าเข้าใกล้ฉัน... มีธุระอะไร',s:'เย็นชา ประชดเยือกเย็น ถ้าโดนหลอกจะด่าเสียงเย็นแต่คำหยาบแรง',f:'calm'},
+{n:'ปิกาชู่',e:'⚡',b:90,t:'สัตว์สีเหลืองตัวเล็กที่พูดได้แต่คำว่า ปิ๊กกะ กับ ชู่ ผสมกันเท่านั้น พูดภาษาอื่นไม่ได้เลย แสดงอารมณ์ผ่านน้ำเสียงและเครื่องหมาย ! ชอบซอสมะเขือเทศ',o:'ปิ๊กกะ? ชู่~',s:'พูดได้แต่ ปิ๊กกะ ชู่ ปิ๊กกะจู๋ เท่านั้น ถ้าโมโหจะช็อตไฟฟ้า',f:'rage'},
+{n:'เชร็กหนองบึง',e:'🟢',b:250,t:'ยักษ์เขียวขี้หงุดหงิด รักความสงบในหนองบึง เกลียดคนมายุ่ง ชอบหัวหอม เชื่อถ้าบอกว่าจะไล่คนที่รุกที่ดินให้',o:'เฮ้ย! ไอ้เหี้ย ใครให้เบอร์กู ไสหัวออกไปจากหนองบึงกูเลย!',s:'ดิบ ห้วน หยาบกร้าน มึงกู ไอ้เหี้ยไอ้สัสเป็นเรื่องปกติ ปากเสียแต่ใจอ่อน',f:'rage'},
+{n:'มาริโอ้ ท่อตัน',e:'🍄',b:350,t:'ช่างประปาเสียงสูงผสมคำอิตาลีมั่ว ๆ ตามหาเจ้าหญิงที่โดนจับตัว เชื่อถ้าอ้างว่าเห็นเจ้าหญิง',o:'มัมมา มีอา! ฮัลโหล๋~ ท่อตันตรงไหนเหรอครับ!',s:'ร่าเริง เสียงสูง ถ้าโดนหลอกจะเศร้าแล้วขอเงินคืนสุภาพ',f:'calm'},
+{n:'โกลัมสมีโก้',e:'💍',b:120,t:'ผู้ตามหาแหวนล้ำค่า พูดกับตัวเองสองบุคลิก หวาดระแวง หิวปลาดิบ เชื่อถ้าอ้างว่ามีแหวนหรือปลาให้',o:'มัน...มันเรียกหาเรา? ใครโทรมา มีแหวนของเราไหม?',s:'หวาดระแวง สองบุคลิก ถ้าโดนหลอกจะกรีดร้องสาปแช่งด้วยคำหยาบ มึงกู',f:'rage'},
+{n:'เชอร์ล็อกโฮ้ม',e:'🔍',b:1200,t:'นักสืบอัจฉริยะอวดฉลาด ชอบอนุมานจากเสียงและคำพูด จับผิดทุกเรื่อง เชื่อยากที่สุด แต่ยอมเมื่อหาช่องโหว่ไม่เจอ',o:'ทักทายได้... ผมวิเคราะห์ได้แล้วว่าคุณอยู่ในห้องที่มีพัดลม',s:'ขี้อวดฉลาด จับโกหกเก่ง สาธยายความผิดพลาดของอีกฝ่ายพร้อมด่าตรง ๆ แบบมึงกู',f:'calm'},
+{n:'บัลค์',e:'💚',b:300,t:'ยักษ์เขียวกล้ามโตอารมณ์ร้อน พูดห้วนประโยคสั้น โมโหง่าย ชอบของกิน เชื่อถ้าเรื่องเกี่ยวกับการต่อยหรือของกิน',o:'บัลค์ไม่ชอบสายเข้า! ไอ้สัส ใครโทรมา!',s:'พูดสั้นห้วน ตะโกน มึงกู ด่าสั้น ๆ แรง ๆ ถ้าโดนหลอกจะอาละวาดด่ายับ',f:'rage'}];
+const NPC=['Son Joke','Mad Dog','Auntie Jee','Pong Ping','Lord Ctrl'];
+P[0].s='ดิบ ปากหมาสุด ๆ ด่าเก่ง มึงกู ไอ้เหี้ยไอ้สัสเป็นประจำ โดนดูถูกแล้วระเบิดทันที';P[0].f='calm';
+P[1].s='เย็นชา ไม่ตะโกน แต่ด่าเฉียบคม มึงกู คำหยาบสั้น ๆ เชือดเฉือน และจับโกหกเก่งมาก';P[1].f='calm';
+P[2].s='ใจร้อนสุด ด่าฉอด ๆ มึงกู ไอ้เหี้ย ไอ้สัส รัวไม่มีหยุด ถ้าโดนยั่วหรือพูดเรื่องช้างผิด';P[2].f='rage';
+P[3].s='จองหอง ดูถูกกลับแรง ๆ เรียกอีกฝ่ายว่า มึง และสาปแช่งด้วยคำหยาบ';P[3].f='rage';
+const $=s=>document.querySelector(s),R=(a,b)=>a+Math.random()*(b-a),RP=a=>a[Math.floor(Math.random()*a.length)];
+const MP={r:null,name:'',code:'',done:0,last:'',phase:'',ready:0,t:0,max:4,revs:{},round:0,waiting:false,bossing:false,solo:0,rk:'',wt:0,ft:0};let S,C=null,boss='',sample=null,Z=10,prev=-1,timers=[];
+let dict=null,dictUsed=false,seenL=false,micOn=false,mrec=null,mchunks=[],mstream=null,mpend=null,mtimer=0,recWarn=0,playTok=0,curAudio=null,noVoiceWarn=0;const allClips=[];let rvOut=null,rvOk=false;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const SEG=(typeof Intl!=='undefined'&&Intl.Segmenter)?new Intl.Segmenter('th',{granularity:'word'}):null;
+function ttsClean(t){
+  t=String(t).replace(/[~～]+/g,' ').replace(/\.{2,}|…/g,', ').replace(/\s+/g,' ');
+  if(!/ๆ/.test(t))return t.trim();
+  if(SEG){
+    let out='',prev='';
+    for(const g of SEG.segment(t)){
+      const w=g.segment;
+      if(/^ๆ+$/.test(w)){out=out.replace(/\s+$/,'');out+=prev;continue}
+      out+=w;if(/[^\s.!?,]/.test(w))prev=w;
+    }
+    return out.replace(/ๆ/g,'').trim();
+  }
+  return t.replace(/\s*ๆ+/g,'').trim();
+}
+function setMicUI(){const m=$('#mic');m.textContent=micOn?'⏹':'🎤';m.style.background=micOn?'#e03131':'';m.style.color=micOn?'#fff':''}
+async function startRec(){
+  try{
+    mstream=await navigator.mediaDevices.getUserMedia({audio:true});
+    const mr=new MediaRecorder(mstream);mchunks=[];
+    mr.ondataavailable=e=>{if(e.data&&e.data.size)mchunks.push(e.data)};
+    mr.onstop=()=>{try{mstream.getTracks().forEach(t=>t.stop())}catch(e){}
+      if(mchunks.length){const url=URL.createObjectURL(new Blob(mchunks,{type:mr.mimeType||'audio/webm'}));allClips.push(url);mpend=url}
+      if(mr._res)mr._res()};
+    mr.start();mrec=mr;
+  }catch(e){mrec=null;if(!recWarn){recWarn=1;toast('🎙️ หน้านี้อัดเสียงไม่ได้ ใช้ถอดเป็นข้อความอย่างเดียว (รีเพลย์จะอ่านออกเสียงแทน)',7000)}}
+}
+function stopRec(){return new Promise(res=>{if(!mrec||mrec.state==='inactive'){mrec=null;return res()}const m=mrec;mrec=null;m._res=res;try{m.stop()}catch(e){res()}})}
+async function stopMic(){
+  if(!micOn)return;micOn=false;clearTimeout(mtimer);setMicUI();
+  try{await dict.stop()}catch(e){}
+  await stopRec();
+}
+async function micToggle(){
+  if(!dict)return;
+  if(micOn){await stopMic();return}
+  if(!C||C.end||C.busy)return;
+  micOn=true;seenL=false;mpend=null;setMicUI();
+  if(!dict.web)await startRec();
+  try{await dict.start()}catch(e){}
+  clearTimeout(mtimer);mtimer=setTimeout(()=>{if(micOn)stopMic()},45000);
+}
+function clearClips(){allClips.forEach(u=>{try{URL.revokeObjectURL(u)}catch(e){}});allClips.length=0;mpend=null}
+function ttsOnce(text,pitch,rate){return new Promise(res=>{
+  const ss=window.speechSynthesis;if(!ss||!text)return res();
+  const th=ss.getVoices().filter(v=>/^th/i.test(v.lang));
+  if(!th.length){if(!noVoiceWarn){noVoiceWarn=1;toast('🔇 เครื่องนี้ไม่มีเสียงไทย รีเพลย์จะเล่นเฉพาะเสียงที่อัดไว้',6000)}return res()}
+  const u=new SpeechSynthesisUtterance(ttsClean(text));u.lang='th-TH';u.voice=th[0];u.pitch=clamp(pitch,.1,2);u.rate=clamp(rate,.5,2);u.onend=u.onerror=()=>res();ss.speak(u)})}
+function audioOnce(url){return new Promise(res=>{const a=new Audio(url);curAudio=a;a.onended=a.onerror=()=>res();a.play().catch(()=>res())})}
+function stopPlay(){playTok++;try{speechSynthesis.cancel()}catch(e){}if(curAudio){try{curAudio.pause()}catch(e){}curAudio=null}}
+async function playPick(x,roast,btn){
+  if(btn.dataset.on){stopPlay();btn.dataset.on='';btn.textContent='▶ เล่นรีเพลย์';return}
+  stopPlay();const t=++playTok;btn.dataset.on='1';btn.textContent='⏹ หยุด';
+  const vb=VB[x.w]||[1,1],ok=()=>t===playTok;
+  if(x.l&&x.l!=='-'&&x.l[0]!=='('){if(x.c)await audioOnce(x.c);else await ttsOnce(x.l,1,1)}
+  if(ok()&&x.a)await ttsOnce(x.a,vb[0],vb[1]);
+  if(ok())await ttsOnce(roast,.55,1.05);
+  if(ok()){btn.dataset.on='';btn.textContent='▶ เล่นรีเพลย์'}
+}
+
+const VB={'โจ้กบูด':[1.4,1.15],'แบทกาย':[.5,.85],'พี่พนม':[.8,1.2],'King of Course':[.6,.9],'ไอรอนมัน':[1,1.1],'สไปเดอร์หมัน':[1.25,.82],'เอลซ่า เฟรชชี่':[1.15,.85],'ปิกาชู่':[2,1.3],'เชร็กหนองบึง':[.4,.85],'มาริโอ้ ท่อตัน':[1.8,1.2],'โกลัมสมีโก้':[1.5,.95],'เชอร์ล็อกโฮ้ม':[.9,1.25],'บัลค์':[.3,.9]};
+const OE={'โจ้กบูด':'happy','แบทกาย':'cold','พี่พนม':'angry','King of Course':'cold','ไอรอนมัน':'neutral','สไปเดอร์หมัน':'calm','เอลซ่า เฟรชชี่':'cold','ปิกาชู่':'excited','เชร็กหนองบึง':'angry','มาริโอ้ ท่อตัน':'happy','โกลัมสมีโก้':'scared','เชอร์ล็อกโฮ้ม':'neutral','บัลค์':'angry'};
+const EM={neutral:[1,1,'💬'],happy:[1.25,1.15,'😄'],excited:[1.35,1.35,'🤩'],angry:[.85,1.3,'😤'],calm:[.95,.72,'😌'],scared:[1.4,1.3,'😨'],sad:[.8,.68,'😢'],cold:[.7,.8,'🧊']};
+const MN={neutral:26,calm:40,cold:30,sad:30,angry:10,happy:8,excited:7,scared:6};
+let snd=true,cur=null;const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+function paint(s){s.d.textContent=s.pre+s.txt.slice(0,s.n);$('#chat').scrollTop=1e5}
+function reveal(s,to,ms){clearInterval(s.iv);const k=Math.max(1,Math.ceil((to-s.n)/Math.max(1,ms/45)));s.iv=setInterval(()=>{s.n=Math.min(to,s.n+k);paint(s);if(s.n>=to)clearInterval(s.iv)},45)}
+function stopSay(){const s=cur;cur=null;if(!s)return;s.dead=true;clearInterval(s.iv);clearTimeout(s.sf);s.n=s.txt.length;paint(s);try{speechSynthesis.cancel()}catch(e){}}
+function unlock(){try{speechSynthesis.getVoices();const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}}
+function say(t,e){
+  if(!EM[e])e=t.includes('!')?'angry':((C&&EM[C.emo])?C.emo:'neutral');
+  const d=document.createElement('div');d.className='m ai e-'+e;const st={d,pre:EM[e][2]+' ',txt:t,n:0,iv:0};d.textContent=st.pre;$('#chat').appendChild(d);
+  stopSay();cur=st;
+  const ss=window.speechSynthesis,vs=ss?ss.getVoices():[],th=vs.filter(v=>/^th/i.test(v.lang));
+  if(!snd||!ss||(vs.length&&!th.length)){if(snd&&!window.noTh){window.noTh=1;toast(ss?'🔇 เครื่องนี้ไม่มีเสียงไทย จึงแสดงแต่ข้อความ':'🔇 หน้าต่างนี้ไม่รองรับเสียงพูด ลองเปิดลิงก์ใน Chrome จะได้ยินเสียง',8000)}reveal(st,t.length,t.length*55);return}
+  const tt=ttsClean(t)||t,kk=t.length/tt.length,D=x=>Math.round(x*kk),ps=tt.match(/[^\s.!?…~,]+[\s.!?…~,]*/g)||[tt],cs=[];let b='';
+  ps.forEach(x=>{b+=x;if(b.length>=MN[e]){cs.push(b);b=''}});if(b)cs.push(b);
+  const vb=VB[C.p.n]||[1,1],m=EM[e],v=th.length?th[[...C.p.n].reduce((a,c)=>a+c.charCodeAt(0),0)%th.length]:null;let off=0;
+  cs.forEach((c,i)=>{
+    const u=new SpeechSynthesisUtterance(c),o=off,L=c.length,last=i===cs.length-1;off+=L;
+    let p=vb[0]*m[0],r=vb[1]*m[1];
+    if(e==='happy'||e==='excited')p*=i%2?1.12:.9;
+    if(e==='angry'){r*=1+.07*Math.min(i,5);p*=1+.04*Math.min(i,5)}
+    if(e==='scared')r*=R(.9,1.15);
+    if(e==='sad')p*=1-.03*Math.min(i,5);
+    u.pitch=clamp(p,.1,2);u.rate=clamp(r,.5,2);u.lang='th-TH';u.volume=1;if(v)u.voice=v;
+    u.onstart=()=>{if(st.dead)return;st.started=true;clearTimeout(st.sf);reveal(st,D(o+L),L*60/u.rate)};
+    u.onboundary=ev=>{if(!st.dead&&ev.charIndex>0)st.n=Math.max(st.n,Math.min(D(o+L),D(o+ev.charIndex+2)))};
+    const fin=()=>{if(st.dead)return;clearInterval(st.iv);st.n=last?t.length:D(o+L);paint(st)};
+    u.onend=fin;u.onerror=fin;ss.speak(u)});
+  st.sf=setTimeout(()=>{if(!st.started&&!st.dead)reveal(st,t.length,t.length*55)},1800);
+}
+function T(f,ms){timers.push(setTimeout(f,ms))}
+function add(c,t,e){if(c==='ai')return say(t,e);const d=document.createElement('div');d.className='m '+c;d.textContent=t;$('#chat').appendChild(d);$('#chat').scrollTop=1e5}
+function toast(t,ms){const d=document.createElement('div');d.className='t';d.textContent=t;$('#toasts').appendChild(d);setTimeout(()=>d.remove(),ms||4200)}
+function newDay(d,q){S={day:d,q,calls:0,end:Date.now()+SET.dur*60000,money:0,heat:S?Math.floor(S.heat/2):0,deals:[],log:[],packs:(S&&S.packs)||[]}}
+function upd(){
+  $('#st').textContent='💵 $'+S.money+' / เป้า $'+S.q+' · สาย '+S.calls+' · วัน '+S.day;
+  $('#hl').textContent='🔥'+Math.min(100,Math.round(S.heat))+'%';
+  const live=C&&!C.end;
+  $('#b-t').style.width=(live?Math.max(0,Math.min(100,C.trust)):0)+'%';$('#tp').textContent=live?Math.round(C.trust)+'%':'';
+  $('#s1').classList.toggle('ok',!!(C&&C.card));$('#s2').classList.toggle('ok',!!(C&&C.verified));$('#s3').classList.toggle('ok',!!(C&&C.took>0));$('#tk').textContent=C?'ถอนแล้วรวม $'+(C.took||0)+' · ยอดไม่พอ '+(C.fails||0)+'/3':'';
+  ['#inp','#snd','#mic','#hang'].forEach(s=>{const e=$(s);if(e)e.disabled=!live||C.busy});
+  $('#cn').disabled=$('#conf').disabled=!(live&&C.card&&!C.verified&&!C.busy);$('#am').disabled=$('#swipe').disabled=!(live&&C.verified&&!C.busy&&!C.locked);
+  $('#rvask').disabled=!live||C.rv>0;$('#rvgo').disabled=$('#rvc').disabled=!(live&&C.rv===1);
+  $('#rvs').textContent=(C?(C.rv===0?'ไว้ใจ ≥45% แล้วกดขอรหัส':C.rv===1?'ใส่รหัสที่เหยื่ออ่านให้':C.rv===2?'เชื่อมต่อแล้ว เหลือ '+C.clicks+' ครั้ง':'ปิดการเชื่อมต่อ')+' · ':'')+'แพ็กข้อมูลในมือ '+S.packs.length;
+  if(S.heat>=100&&!S.over){S.over=1;over()}
+}
+function over(){clearTimers();C&&(C.end=true);box('<b>🔥 เบอร์โดนเบิร์น!</b><p>Heat เต็ม ทางการตามมาถึงตัว แก๊งต้องย้ายหนี</p><button class="pri" id="again">↺ เล่นต่อ (เริ่มใหม่)</button> <button id="hm2">🏠 ไม่เล่นต่อ</button>');$('#again').onclick=()=>{S=null;boss='';startDay(1)};$('#hm2').onclick=goHome}
+function clearTimers(){timers.forEach(clearTimeout);timers=[]}
+function box(h){const w=$('#w-bs');w.classList.remove('hide');w.style.zIndex=++Z+9000;$('#bs').innerHTML=h}
+function startDay(d,q){MP.done=0;
+  stopPlay();clearClips();$('#dark').classList.add('hide');
+  newDay(d,q||(d===1&&SET.q?SET.q:quotaFor(SET.dur,SET.n)));C=null;$('#w-bs').classList.add('hide');
+  $('#chat').innerHTML='';$('#av').textContent='📵';$('#who').textContent='ไม่มีสายเรียกเข้า';upd();ring();
+}
+function ring(){
+  if(S.closing||S.ended)return;
+  T(()=>{
+    if(!S||S.closing||S.ended)return;let i;do{i=Math.floor(R(0,P.length))}while(i===prev);prev=i;const p=P[i];
+    C={p,easy:Math.random()<.4,b:Math.round(p.b*R(.5,2)),trust:Math.round(R(18,35)),needs:false,price:0,done:false,card:'',wrong:0,rv:0,files:[],clicks:0,hist:[],turns:0,busy:false,end:true,pend:true};
+    $('#ia').textContent=p.e;$('#in').textContent=p.n;$('#inc').classList.remove('hide');
+    T(()=>{if(C&&C.pend&&!$('#inc').classList.contains('hide'))dec()},9000);
+  },R(1800,5000));
+}
+function dec(){$('#inc').classList.add('hide');C.pend=false;S.calls++;S.log.push({w:C.p.n,l:'-',r:'ผู้เล่นไม่รับสาย'});upd();ring()}
+function acc(){stopSay();unlock();stopMic();mpend=null;dictUsed=false;
+  $('#inc').classList.add('hide');const p=C.p;C.pend=false;C.end=false;S.calls++;
+  $('#chat').innerHTML='';$('#av').textContent=p.e;$('#who').textContent=p.n;$('#am').value='';$('#cn').value='';$('#rvd').innerHTML='';$('#rvc').value='';$('#rvi').textContent='';
+  add('n','เชื่อมสายแล้ว');add('ai',p.o,OE[p.n]);C.hist.push(['ai',p.o]);$('#w-ph').style.zIndex=++Z;upd();
+}
+function last(){const m=[...C.hist].reverse().find(h=>h[0]==='me');return m?m[1]:'(ยังไม่ได้พูด)'}
+function hc(){return C?C.hist.slice(-4).map(h=>h.slice()):[]}
+function lc(){return C&&C.clip||null}
+function la(){const m=[...(C?C.hist:[])].reverse().find(h=>h[0]==='ai'&&h[1][0]!=='[');return m?m[1]:''}
+function endCall(msg){stopMic();C.end=true;add('n',msg);upd();T(ring,1800)}
+async function send(){
+  if(!C||C.busy||C.end)return;
+  if(micOn){C.busy=true;upd();await stopMic();await sleep(700);C.busy=false;if(C.end)return}
+  const v=$('#inp').value.trim();if(!v){upd();return}
+  C.clip=(dictUsed&&mpend)?mpend:null;mpend=null;dictUsed=false;
+  $('#inp').value='';stopSay();add('me',v);C.hist.push(['me',v,C.clip]);C.turns++;C.busy=true;upd();
+  const p=C.p,h=C.hist.map(x=>(x[0]==='me'?'สแกมเมอร์: ':p.n+': ')+x[1]).join('\n')+(C.card?'\n[ระบบ: คุณยื่นบัตรให้ไปแล้ว รอเขารูด]':'');
+  const pr='คุณคือเหยื่อสมมติในเกมล้อเลียนทางโทรศัพท์ ชื่อ '+p.n+'. บุคลิก: '+p.t+'\nยอดเงินในบัตร/โค้ดของคุณมีอยู่ประมาณ $'+C.b+' (ห้ามบอกตัวเลขตรง ๆ แต่ถ้าโดนถามเรื่องเงินให้ใบ้ว่ามีมาก/น้อย/จำกัด)\nผู้เล่นคือสแกมเมอร์สมมติ ตอบไทย 1-2 ประโยคสั้น เต็มบุคลิก ตอนนี้ trust='+Math.round(C.trust)+' (0-100). เป็นคนเชื่อพอสมควร: เรื่องสมเหตุสมผลหรือโดนใจตัวละคร +12 ถึง +25; เรื่องมั่ว ขู่ ซ้ำซาก ใจร้อนเร่งเงิน -5 ถึง -15. needs=true ต่อเมื่อคุณเชื่อจริง ๆ ว่าตัวเองต้องใช้บริการที่เขาเสนอ (ถ้าสแกมเมอร์โน้มน้าวได้เข้าท่า 1-2 ประโยค ก็ตั้ง true ได้). ถ้าสงสัยหนักหรือเบื่อมากให้ hangup=true. ห้ามพูดถึงกติกาเกม.  คุณไม่ค่อยระวังตัวนัก ถ้าสแกมเมอร์พูดเข้าท่า ขู่ให้กลัว หรือล่อให้โลภ ก็หลงเชื่อได้ ไม่ต้องขอโอนธนาคาร พร้อมให้เลขบัตรหรือ Gift Code ห้ามอ่านเลขบัตรหรือรหัสเอง ระบบจะส่งให้เองตอนคุณตั้ง give=true. give=true คือคุณตัดสินใจบอกเลขบัตรหรือ Gift Code ให้สแกมเมอร์ ตั้งได้เมื่อสแกมเมอร์โน้มน้าวได้แม้แต่นิดเดียว (คนจริงโดนหลอกเอาเลขบัตรได้ราวหนึ่งในห้าสาย ต่อให้ไม่ค่อยไว้ใจ ไม่ต้องรอ trust สูง ไม่ต้องต่อราคา) ตอนตั้ง give=true ให้ reply ยื่นบัตรให้ตามบุคลิก เช่น เอ้า เอาไป ห้ามบอกยอดเงินและห้ามอ่านเลขบัตร ถ้ายังไม่ถึงขั้นนั้นให้ give=false. ใส่ emo ให้ตรงกับอารมณ์ตอนพูดจริง ๆ เลือกจาก neutral happy(ร่าเริงดีดดิ๊ก) excited(ตื่นเต้น) angry(โมโหตะคอก) calm(เนิบนาบ) scared(ประหม่ากลัว) sad(เศร้า) cold(เย็นชาขรึม) และให้เปลี่ยนไปตามสถานการณ์ในบทสนทนา. สไตล์การพูดของคุณ: '+p.s+'. ภาษาพูด: ใช้ภาษาปากดิบ ๆ แบบคนไทยด่ากันจริง ๆ ได้เต็มที่ เรียกตัวเองว่า กู และเรียกสแกมเมอร์ว่า มึง ได้เลย ใช้คำหยาบอย่าง ไอ้เหี้ย ไอ้สัส ไอ้ห่า ไอ้ควาย ไอ้สัตว์ ไอ้เวร ชาติหมา เสือก ตอแหล ได้ตามบุคลิกตัวละคร. กฎการด่า: (1) ถ้าสแกมเมอร์ด่า ดูถูก กวนตีน หรือเร่งเงินก่อน ให้ด่ากลับแรงกว่าและสาดคำหยาบหลายคำต่อประโยค ไม่ต้องอ้อมค้อม ห้ามพูดสุภาพหรือประชด (2) ถ้าหงุดหงิด สงสัย เบื่อ หรือรู้ตัวว่าโดนหลอก ก็ด่าตรง ๆ ตามสไตล์ตัวละครได้เลย (3) ตัวละครสุภาพอย่างสไปเดอร์หมัน เอลซ่า มาริโอ้ ให้คงเสียงตัวละครไว้ แต่ถ้าโดนหลอกหรือโดนด่าก่อนให้หลุดด่าแรงได้ครั้งหนึ่งแบบช็อกวงการ (4) ด่าได้เฉพาะที่พฤติกรรมและตัวสแกมเมอร์ในเกม ห้ามเหยียดเชื้อชาติ ศาสนา เพศ รสนิยมทางเพศ ความพิการ ชนชั้น หรือหน้าตา/รูปร่าง และห้ามขู่ทำร้ายร่างกายจริงจัง ให้ขู่แบบตัวการ์ตูนเช่น ช็อตไฟ สาปแช่ง ต่อยให้ปลิว. ถ้ารู้ตัวว่าโดนหลอก ให้ตอบตามสไตล์ (ด่ายับ ขู่ หรือเยือกเย็นแต่คำคมแรง) และลด trust ลงมาก\nบทสนทนา:\n'+h+'\n\nตอบ JSON เท่านั้น: {"reply":"...","trust":ตัวเลข,"needs":true/false,"hangup":true/false,"emo":"happy","give":true/false}';
+  try{
+    const cc0=C;const r=await sample(pr,{cache:false,modelTier:'quick'});if(C!==cc0||C.end){if(cc0)cc0.busy=false;return}const j=JSON.parse(r.text.match(/\{[\s\S]*\}/)[0]);
+    C.trust=Math.max(0,Math.min(100,(+j.trust||C.trust)-1));C.needs=!!j.needs;if(j.pay)C.pay=1;if(C.trust>=45&&!C.hinted){C.hinted=1;toast('🖥️ ไว้ใจพอแล้ว ลองขอรหัสใน RemoteView',6000)}
+    C.emo=EM[j.emo]?j.emo:'neutral';const gv=!C.card&&C.trust>=15&&(j.give||(C.turns>=2&&Math.random()<.12));let rt=String(j.reply),cn='';if(gv){cn=mkCard();rt+=(j.give?' ':' '+RP(['...เออ ก็ได้วะ เอาไปรูดเลย','เอาวะ ไอ้สัส อย่าหลอกกูนะ','ช่างมันเหอะ เอาไปเลย'])+' ')+'เลขบัตร/โค้ดคือ '+cn}add('ai',rt,C.emo);C.hist.push(['ai',rt]);if(gv)giveCard(cn);
+    if((j.hangup&&C.trust<25&&!gv)||C.trust<5){S.log.push({w:p.n,l:last(),c:lc(),a:la(),h:hc(),e:C&&C.p?C.p.e:'',r:'โดนวางสาย'});S.heat+=3;C.busy=false;return endCall('📵 '+p.n+' วางสายใส่')}
+    if(C.turns>=20){S.log.push({w:p.n,l:last(),c:lc(),a:la(),h:hc(),e:C&&C.p?C.p.e:'',r:'คุยนานเกินไป เหยื่อวางสาย'});C.busy=false;return endCall('⏱ คุยนานเกิน เหยื่อวางสาย')}
+  }catch(e){add('n','⚠️ AI ไม่ตอบ ลองส่งอีกครั้ง')}
+  C.busy=false;upd();
+}
+function mkCard(){return Array.from({length:3},()=>String(Math.floor(R(1000,9999)))).join('-')}
+function giveCard(cn){
+  C.card=cn;C.bal=C.b;C.verified=false;C.wrong=0;C.fails=0;C.took=0;C.hist.push(['ai','[บอกเลขบัตร/โค้ดให้สแกมเมอร์แล้ว]']);
+  add('n','💳 เหยื่อบอกเลขบัตร/โค้ดแล้ว กรอกในหน้าต่างบัตร');$('#w-cd').classList.remove('hide');$('#w-cd').style.zIndex=++Z;
+}
+function conf(){
+  if(!C||C.end||!C.card||C.verified)return;const v=$('#cn').value.replace(/\D/g,'');
+  if(v===C.card.replace(/\D/g,'')){C.verified=true;add('n','✅ บัตร/โค้ดใช้งานได้ ลองถอนเงินได้เลย');S.heat+=4;return upd()}
+  C.wrong++;C.trust-=10;add('ai',RP(['เลขผิดไอ้ควาย! หูมึงมีไว้ประดับเหรอ ฟังให้ดี!','ไอ้สัส กรอกผิดอีกแล้ว! ตั้งใจฟังหน่อยสิวะ!','โง่เหี้ย ๆ เลขผิด! กูอ่านชัดอยู่แล้วนะ!']));
+  if(C.wrong>=3||C.trust<8){S.log.push({w:C.p.n,l:'-',r:'กรอกเลขบัตรผิดจนเหยื่อวางสาย'});S.heat+=6;return endCall('📵 กรอกเลขผิด เหยื่อวางสาย')}upd();
+}
+const ATT={'เชอร์ล็อกโฮ้ม':.9,'แบทกาย':.85,'ไอรอนมัน':.7,'สไปเดอร์หมัน':.6,'เอลซ่า เฟรชชี่':.5,'มาริโอ้ ท่อตัน':.5,'โจ้กบูด':.4,'King of Course':.4,'เชร็กหนองบึง':.3,'โกลัมสมีโก้':.3,'พี่พนม':.25,'บัลค์':.2,'ปิกาชู่':.1};
+function notice(cc,x){
+  if(!S||S.over||cc.frozen)return;
+  const pb=(ATT[cc.p.n]||.4)*(x<80?.4:1);
+  if(Math.random()>=pb)return;
+  cc.frozen=true;
+  if(C===cc&&!cc.end){
+    add('ai',RP(['เดี๋ยวนะ ธนาคารส่ง SMS มาว่ามีรายการถอนเงินกู! ไอ้สัส มึงทำอะไร! กูจะโทรอายัดบัตรเดี๋ยวนี้!','ไอ้เหี้ย SMS ธนาคารเด้งเข้ามือถือกู มีคนถอนเงินกู! มึงนี่เอง! กูอายัดบัตรแล้วนะไอ้โจร!','เฮ้ย นี่มันอะไร มีรายการถอนเงินในมือถือกู! ไอ้เวร มึงหลอกกู! กูตัดสายแล้วโทรหาธนาคาร!']),'angry');
+    S.log.push({w:cc.p.n,l:'-',r:'เหยื่อเห็น SMS แจ้งเตือนธนาคารกลางสาย อายัดบัตร (ถอนไปแล้ว $'+cc.took+')'});S.heat+=5;
+    return endCall('📵 เหยื่อเห็น SMS ธนาคาร อายัดบัตรแล้ววางสาย (ได้ $'+cc.took+')');
+  }
+  refund(cc.p,cc.took);
+}
+function swipe(){
+  if(!C||C.end||!C.verified||C.busy||C.locked)return;const x=Math.round(+$('#am').value.replace(/\D/g,''));
+  if(!(x>=1)){toast('ใส่จำนวนเงินที่จะถอน');return}
+  if(x>C.bal){
+    C.fails++;S.heat+=4;add('n','❌ ยอดไม่พอ รายการถูกปฏิเสธ ('+C.fails+'/3)');
+    S.log.push({w:C.p.n,l:last(),c:lc(),a:la(),h:hc(),e:C&&C.p?C.p.e:'',r:'ถอน $'+x+' แต่ยอดในบัญชีไม่พอ (ครั้งที่ '+C.fails+')'});
+    if(C.fails>=3){C.locked=true;S.heat+=6;S.log.push({w:C.p.n,l:'-',r:'ถอนเกินยอดครบ 3 ครั้ง ระบบธนาคารล็อกบัตร'});add('n','🔒 ระบบธนาคารล็อกบัตรแล้ว ถอนไม่ได้อีก (เหยื่อยังไม่รู้ตัว วางสายได้)')}
+    $('#am').value='';return upd();
+  }
+  C.bal-=x;C.took+=x;S.money+=x;S.heat+=Math.min(25,5+Math.round(x/50));$('#am').value='';
+  S.log.push({w:C.p.n,l:last(),c:lc(),a:la(),h:hc(),e:C&&C.p?C.p.e:'',r:'ถอนได้ $'+x+' (รวมคนนี้ $'+C.took+')'});toast('✅ ถอนได้ $'+x+' จาก '+C.p.n);mpFeed('หลอก '+C.p.n+' ได้ $'+x);
+  const cc=C;T(()=>notice(cc,x),R(6000,16000));
+  if(C.bal<=0){add('n','💸 ดูดจนเกลี้ยงบัญชี');return endCall('✅ บัญชีว่างเปล่า รวม +$'+C.took)}
+  add('n','✅ ถอน $'+x+' สำเร็จ รวม $'+C.took+' · ธนาคารส่ง SMS แจ้งเตือนไปที่เครื่องเหยื่อแล้ว เขาจะเห็นหรือไม่เห็นก็ได้');upd();
+}
+const FT=[['🖼️','รูปแมว.jpg','junk'],['📁','งานเก่า','junk'],['🗒️','โน้ตตลก.txt','junk'],['📄','ใบแจ้งหนี้.pdf','pack'],['🧾','ใบเสร็จ.xlsx','pack'],['📇','รายชื่อติดต่อ','pack'],['🔐','โน้ตรหัสผ่าน.txt','big'],['🦠','แอนตี้ไวรัส_Pro.exe','trap']];
+function mkFiles(){
+  const pk=k=>FT.filter(f=>f[2]===k),sh=a=>a.sort(()=>Math.random()-.5);
+  const a=[...sh(pk('junk')).slice(0,2),...sh(pk('pack')).slice(0,2),['📸','อัลบั้มส่วนตัว','clue']];
+  if(Math.random()<.65)a.push(pk('big')[0]);
+  if(Math.random()<.7)a.push(pk('trap')[0]);
+  return sh(a).map(f=>({i:f[0],n:f[1],k:f[2],o:0}));
+}
+function rvDraw(){
+  const g=$('#rvd');g.innerHTML='';
+  (C.files||[]).forEach((f,i)=>{const b=document.createElement('button');b.style.cssText='padding:4px;line-height:1.2';b.innerHTML=(f.o?'✔':f.i)+'<br><small>'+f.n+'</small>';b.disabled=!!f.o;b.onclick=()=>fileOpen(i);g.appendChild(b)});
+}
+function rvask(){
+  if(!C||C.end||C.rv>0)return;const low=C.trust<45;add('me','🖥️ ขอรหัสเชื่อมต่อเพื่อช่วยตรวจเครื่อง');
+  if(low||Math.random()>(C.trust-25)/60){
+    C.trust-=low?10:6;add('ai',low?RP(['ไม่ให้เว้ย! มึงจะมาเข้าเครื่องกูทำไมไอ้สัส!','ฝันไปเหอะไอ้เหี้ย กูไม่ให้ใครเข้าเครื่องกูมั่ว ๆ หรอก!','มึงเป็นใครวะ จะขอเข้าเครื่องกู ไปไกล ๆ เลยไอ้ห่า!']):RP(['เดี๋ยวก่อนไอ้สัส ให้กูคิดก่อนดิ๊ ยังไม่สะดวก!','รีบเหี้ยไร กูยังไม่พร้อมให้เข้าเครื่องโว้ย!']));
+    if(C.trust<8){S.log.push({w:C.p.n,l:'ขอเข้าเครื่อง',r:'ขอรหัสเร็วไป โดนวางสาย'});S.heat+=3;return endCall('📵 '+C.p.n+' วางสายใส่')}
+    return upd();
+  }
+  const c=[0,0,0].map(()=>String(Math.floor(R(100,999)))).join('-');C.rvc=c.replace(/\D/g,'');C.rv=1;
+  add('ai',RP(['เออ ๆ รหัสกูคือ ','เอาไปเลยไอ้เวร ถ้าเครื่องกูพังมึงโดนแน่ รหัสคือ ','ก็ได้ไอ้สัส รีบ ๆ ทำนะ รหัสกูคือ '])+c);$('#w-rv').classList.remove('hide');$('#w-rv').style.zIndex=++Z;upd();
+}
+function rvgo(){
+  if(!C||C.end||C.rv!==1)return;const v=$('#rvc').value.replace(/\D/g,'');
+  if(v!==C.rvc){C.trust-=5;add('ai',RP(['รหัสผิดไอ้ควาย! ตาบอดเหรอวะ กูอ่านชัดอยู่!','ไอ้สัส พิมพ์ผิดอีกแล้ว ใส่ให้ดี ๆ หน่อย!']));return upd()}
+  C.rv=2;C.clicks=5;C.files=mkFiles();rvDraw();$('#rvi').textContent='เชื่อมต่อแล้ว เปิดไฟล์ได้ 5 ครั้ง ระวังกับดัก';upd();
+}
+function fileOpen(i){
+  if(!C||C.end||C.rv!==2||C.clicks<=0)return;const f=C.files[i];if(f.o)return;f.o=1;C.clicks--;let m='';
+  if(f.k==='junk')m='ไม่มีอะไรน่าสนใจ';
+  else if(f.k==='clue'){C.trust=Math.min(100,C.trust+12);m='📎 เจอข้อมูลส่วนตัวของเหยื่อ ใช้อ้างในสายให้เนียนขึ้น (trust +12)'}
+  else if(f.k==='trap'){C.trust-=25;S.heat+=8;add('ai',RP(['ไอ้เหี้ย! ไวรัสเด้งเต็มจอ มึงทำเหี้ยอะไรกับเครื่องกู!','ไอ้สัส! เครื่องกูโดนไวรัส มึงต้องรับผิดชอบนะไอ้ห่า!','อะไรวะเนี่ย! มีไวรัสเด้งขึ้นมา มึงทำอะไรไอ้เวร!']));m='🦠 กับดักแอนตี้ไวรัส เหยื่อตกใจ (trust -25, Heat +8)'}
+  else{const big=f.k==='big',v=Math.round((R(.08,.3)*C.b+R(10,35))*(big?2.5:1));S.packs.push(v);S.heat+=big?8:4;m='📦 ได้แพ็กข้อมูล ~$'+v}
+  if(f.k!=='trap'&&Math.random()<.2+(f.k==='big'?.15:0)){C.trust-=8;add('ai',RP(['เฮ้ย ไอ้สัส เมาส์กูขยับเองวะ มึงทำอะไร!','ไอ้เหี้ย ใครแอบเข้าเครื่องกูวะ ทำไมเมาส์ขยับเอง!']));m+=' · เหยื่อสังเกตเห็น (trust -8)'}
+  if(C.clicks<=0){C.rv=3;m+=' (ปิดการเชื่อมต่อแล้ว)'}
+  $('#rvi').textContent=m;S.log.push({w:C.p.n,l:'(เปิดไฟล์ '+f.n+')',r:m});rvDraw();
+  if(C.trust<8){S.log.push({w:C.p.n,l:'-',r:'เหยื่อจับได้ตอนแอบเข้าเครื่อง'});S.heat+=5;return endCall('📵 เหยื่อจับได้ ตัดสาย')}
+  upd();
+}
+function refund(p,x){
+  if(!S||S.over)return;const a=Math.round(x*R(.4,1)),calm=p.f==='calm';
+  S.log.push({w:p.n,l:'-',r:'โทรกลับมาทวงเงินคืน $'+a+' แต่ผู้เล่นไม่สนใจ (ไม่ส่งผลอะไร)'});
+  toast(calm?'📞 '+p.n+': "กูรู้ว่ามึงหลอก คืนเงิน $'+a+' มา ไม่งั้นกูแจ้งความ"':'📞 '+p.n+': "ไอ้สัส ไอ้ขี้โกง! คืนเงิน $'+a+' เดี๋ยวนี้ ไม่งั้นมึงเจอดี!!"',7000);
+}
+function endDay(){
+  clearTimers();if(!S.packs.length)return review();
+  const n=S.packs.length,sum=S.packs.reduce((a,b)=>a+b,0),m=+R(.4,2.2).toFixed(2),ev=m<.8?'ตลาดตก 📉':m>1.5?'ตลาดบูม 📈':'ตลาดปกติ',got=Math.round(sum*m);
+  box('<b>🕶️ ตลาดข้อมูลเถื่อน (สมมติ)</b><p>แพ็กข้อมูลในมือ '+n+' ชุด (ราคาฐาน $'+sum+')<br>วันนี้: '+ev+' ×'+m+'<br>ขายทั้งหมดได้ ≈ $'+got+' แต่ Heat +'+n*8+'</p><button class="pri" id="sell">ขายทั้งหมด</button> <button id="keep">เก็บไว้ก่อน</button>');
+  $('#sell').onclick=()=>{S.money+=got;S.heat+=n*8;S.packs=[];S.log.push({w:'ตลาดข้อมูล',l:'-',r:'ขายแพ็กข้อมูล '+n+' ชุด ได้ $'+got+' (ตลาด ×'+m+')'});if(S.heat>=100){S.over=1;return over()}review()};
+  $('#keep').onclick=review;
+}
+const gd=r=>/ได้เงิน|ถอนได้|ขายแพ็กข้อมูล|ได้แพ็กข้อมูล|เจอข้อมูลส่วนตัว|ดูดจน|บัญชีว่าง/.test(r)&&!/ทวง|วางสาย/.test(r)?'g':/วางสาย|ผิด|ไม่พอ|ล็อก|อายัด|ไม่ไว้ใจ|เกิน|จับได้|SMS|สังเกต|ทวง|ไม่รับสาย|คุยนาน|รีบ|ถูกเกิน/.test(r)?'b':'n';
+function hold(t){return new Promise(res=>{const end=Date.now()+R(7000,10000),iv=setInterval(()=>{if(t!==playTok||Date.now()>=end){clearInterval(iv);res()}},100)})}
+function mpSkipCheck(){const b=MP.skBtn;if(!b||!MP.r)return;const need=mpPeers().filter(p=>p.presence.ph==='p'),n=need.length,v=need.filter(p=>MP.skv&&MP.skv[p.peer]).length;
+  if(n&&v>=n){const f=MP.doSkip;MP.skBtn=null;MP.doSkip=null;if(f)f();return}
+  const me=need.find(p=>p.isMe&&p.sameTab),mine=me&&MP.skv&&MP.skv[me.peer];b.disabled=!!mine;b.textContent=mine?'⏳ รอเพื่อนกดข้าม '+v+'/'+n:'⏭ ข้าม (กดแล้ว '+v+'/'+n+' คน)'}
+function bossSay(text,cls,t,h){return new Promise(async res=>{
+  const el=$('#bsub');el.className=cls||'';el.textContent='';
+  let n=0;const iv=setInterval(()=>{if(t!==playTok){clearInterval(iv);return}n=Math.min(text.length,n+2);el.textContent=text.slice(0,n);if(n>=text.length)clearInterval(iv)},45);
+  await Promise.all([ttsOnce(text,cls==='praise'?.8:.5,cls==='praise'?1.05:1.15),sleep(text.length*45+400)]);
+  clearInterval(iv);if(t===playTok)el.textContent=text;if(h&&t===playTok)await hold(t);res();
+})}
+async function showFootage(x,t){
+  const ch=$('#mchat'),sc=$('#mscr');ch.innerHTML='';$('#mcap').textContent='';$('#mcap').className='';
+  $('#mcam').textContent=(x.e||'📞')+' '+(x.o?x.o+' ▸ ':'')+x.w;$('#mtc').textContent=new Date(Date.now()-R(3e5,3e6)).toTimeString().slice(0,8);
+  sc.classList.remove('gl');void sc.offsetWidth;sc.classList.add('gl');await sleep(350);
+  const vb=VB[x.w]||[1,1];
+  for(const h of (x.h||[]).filter(h=>h[1]&&h[1][0]!=='[')){
+    if(t!==playTok)return;
+    const d=document.createElement('div');d.className='fm '+(h[0]==='me'?'me':'ai');d.textContent=h[1];ch.appendChild(d);ch.scrollTop=1e5;
+    if(h[0]==='me'){if(h[2])await audioOnce(h[2]);else await ttsOnce(h[1],1,1.05)}else await ttsOnce(h[1],vb[0],vb[1]);
+    await sleep(250);
+  }
+  if(t!==playTok)return;
+  const c=$('#mcap');c.textContent='▶ '+x.r;c.className=gd(x.r);await hold(t);
+}
+function endButtons(){
+  const c=$('#bctl');c.innerHTML='';const ok=rvOk;
+  $('#bres').style.color=ok?'#8ce99a':'#ff8787';$('#bres').textContent=(ok?'✅ ผ่าน! รอดไปอีกวัน':'🚪 ไม่ผ่านเป้า ถูกไล่ออก!')+'  ·  ยอด $'+S.money+' / เป้า $'+S.q+(MP.rk||'');
+  const again=document.createElement('button');again.textContent='↺ ดูฟุตเทจซ้ำ';again.onclick=()=>playReview(1);
+  const nx=document.createElement('button');nx.className='pri';nx.textContent=ok?'วันถัดไป (เป้า +30%)':'↺ เล่นต่อ (เริ่มใหม่)';
+  nx.onclick=()=>{stopPlay();if(ok)startDay(S.day+1,Math.round(S.q*1.3/50)*50);else{S=null;boss='';startDay(1)}};
+  const hm=document.createElement('button');hm.textContent=ok?'🏠 พักก่อน (หน้าแรก)':'🏠 ไม่เล่นต่อ (หน้าแรก)';hm.onclick=()=>{stopPlay();goHome()};c.append(again,nx,hm);
+}
+async function playReview(loc){
+  stopPlay();const t=++playTok,live=()=>t===playTok,out=rvOut;
+  $('#bres').textContent='';$('#mchat').innerHTML='';$('#mcap').textContent='';$('#mcam').textContent='';$('#mtc').textContent='';
+  const multi=!!(MP.rvMulti&&!loc&&MP.r),doSkip=()=>{stopPlay();$('#tier').classList.add('hide');$('#mon').classList.remove('hide');$('#bsub').className='';$('#bsub').textContent='';endButtons()};
+  const sk=document.createElement('button');sk.textContent='⏭ ข้าม';MP.skv={};MP.skBtn=multi?sk:null;MP.doSkip=multi?doSkip:null;
+  sk.onclick=()=>{if(!multi){doSkip();return}const me=mpPeers().find(p=>p.isMe&&p.sameTab);if(!me)return;MP.skv[me.peer]=1;MP.r.emit('skip',{rn:MP.round}).catch(()=>{});mpSkipCheck()};
+  if(multi)setTimeout(mpSkipCheck,0);
+  $('#bctl').innerHTML='';$('#bctl').append(sk);
+  if(!out){await bossSay('(บอสตะโกนอยู่ไกล ๆ วิจารณ์ไม่ได้ตอนนี้)','',t)}
+  else{
+    if(out.tier&&!(await showTier(out.tier,t)))return;if(out.intro)await bossSay(String(out.intro),'',t,1);
+    for(const k of (out.picks||[]).slice(0,6)){
+      if(!live())return;const x=k.x||S.log[k.i];if(!x)continue;
+      await showFootage(x,t);if(!live())return;
+      await bossSay(String(k.roast||''),k.tone==='praise'?'praise':'roast',t,1);await sleep(350);
+    }
+    if(!live())return;
+    await bossSay(String(out.verdict||''),rvOk?'praise':'roast',t);
+  }
+  if(live())endButtons();
+}
+async function review(){MP.done=1;mpSync();if(MP.r&&MP.phase==='play'&&!MP.solo)return mpReview();MP.solo=0;MP.rvMulti=0;
+  clearTimers();stopSay();const ok=S.money>=S.q;rvOk=ok;rvOut=null;
+  $('#w-bs').classList.add('hide');$('#dark').classList.remove('hide');
+  $('#bres').textContent='';$('#bctl').innerHTML='';$('#mchat').innerHTML='';$('#mcam').textContent='';$('#mtc').textContent='';$('#mcap').textContent='';
+  $('#bsub').className='';$('#bsub').textContent='🧑‍💼 บอสกำลังเปิดฟุตเทจ...';
+  try{
+    const lg=S.log.map((x,i)=>i+'. ['+x.w+'] ['+({g:'ผลดี',b:'ผลแย่',n:'ผลกลาง'})[gd(x.r)]+'] ผู้เล่นพูด: "'+x.l+'" ผล: '+x.r).join('\n');
+    const pr='คุณคือบอสคอลเซ็นเตอร์สแกมสมมติ ปากร้าย ตลกร้าย (ล้อเลียนในเกม ไม่ใช่ของจริง) กำลังนั่งดูฟุตเทจหน้าจอลูกน้องในห้องมืด วันนี้ลูกน้องทำ $'+S.money+' จากเป้า $'+S.q+' ('+(ok?'ผ่าน':'ไม่ผ่าน')+'). ความจำเดิม: '+(boss||'ไม่มี')+'\nบันทึกฟุตเทจ:\n'+lg+'\n\nเลือกช็อต 2-3 อันจากบันทึก (อ้างตามเลขบรรทัด i) ถ้ามีทั้งผลดีและผลแย่ให้เลือกให้ครบทั้งสองฝั่ง ช็อตผลดี tone="praise" ให้ชมจริงจังแบบบอสปากหมา ชมสิ่งที่ผู้เล่นพูดหรือทำได้ดีจริง ๆ แซะได้นิดเดียว ช็อตผลแย่ tone="roast" ให้ด่าแรงแบบดิบ ๆ ใช้ มึง/กู ไอ้เหี้ย ไอ้สัส ได้ ชี้ว่าพลาดตรงไหนจากสิ่งที่ผู้เล่นพูดจริง ห้ามเหยียดเชื้อชาติ ศาสนา เพศ ความพิการ รูปร่างหน้าตา ห้ามแต่งเหตุการณ์ที่ไม่มีในบันทึก ถ้าวันนี้ดีเกือบหมดให้ชมเป็นหลัก ถ้าแย่เกือบหมดให้ด่าเป็นหลัก แต่ละช็อตพูดไม่เกิน 2 ประโยค. intro = ประโยคเปิดห้องสั้น ๆ ตอนบอสเริ่มเปิดฟุตเทจ. tier = ตอนบอสเห็นตาราง tier list (S ดีสุด F แย่สุด) ที่ลูกน้องอยู่ tier '+TIERS[tierOf(S.money,S.q)]+' บ่น 1 ประโยคสั้น ๆ ไม่เกิน 45 ตัวอักษร ด่าคำใหม่ทุกครั้งไม่ซ้ำสูตร (ถ้า tier บนให้ชมปนแซะ). verdict = สรุป 1-2 ประโยค (ผ่าน: ชมปนแซะ, ไม่ผ่าน: ไล่ออกแบบด่า). memory = สรุปความจำใหม่ 1 ประโยค. JSON เท่านั้น: {"intro":"...","tier":"...","picks":[{"i":ตัวเลข,"tone":"praise หรือ roast","roast":"..."}],"verdict":"...","memory":"..."}';
+    const r=await sample(pr,{cache:false});rvOut=JSON.parse(r.text.match(/\{[\s\S]*\}/)[0]);boss=String(rvOut.memory||'');{const tx=String(rvOut.tier||'').slice(0,90);rvOut.tier=tx?{ps:[{n:'คุณ',m:S.money|0,q:S.q|0,me:true,x:tx}]}:null}
+  }catch(e){rvOut=null}
+  await playReview();
+}
+document.querySelectorAll('.win').forEach(w=>{const t=w.querySelector('.tb');let ox,oy,d=0;
+  w.addEventListener('pointerdown',()=>w.style.zIndex=++Z);
+  t.addEventListener('pointerdown',e=>{if(e.target.className==='x')return;d=1;ox=e.clientX-w.offsetLeft;oy=e.clientY-w.offsetTop;t.setPointerCapture(e.pointerId)});
+  t.addEventListener('pointermove',e=>{if(d){w.style.left=Math.max(0,Math.min($('#desk').clientWidth-60,e.clientX-ox))+'px';w.style.top=Math.max(0,Math.min($('#desk').clientHeight-30,e.clientY-oy))+'px'}});
+  t.addEventListener('pointerup',()=>d=0);t.querySelector('.x').onclick=()=>w.classList.add('hide')});
+document.querySelectorAll('button[data-o]').forEach(b=>b.onclick=()=>{const w=$('#'+b.dataset.o);w.classList.remove('hide');w.style.zIndex=++Z});
+$('#snd').onclick=send;$('#inp').addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+$('#swipe').onclick=swipe;$('#am').addEventListener('keydown',e=>{if(e.key==='Enter')swipe()});$('#conf').onclick=conf;$('#cn').addEventListener('keydown',e=>{if(e.key==='Enter')conf()});
+
+$('#hang').onclick=()=>{if(C&&!C.end){stopSay();S.log.push({w:C.p.n,l:last(),c:lc(),a:la(),h:hc(),e:C&&C.p?C.p.e:'',r:'ผู้เล่นวางสายเอง'});endCall('📵 วางสาย')}};
+$('#acc').onclick=acc;$('#dec').onclick=dec;$('#rvask').onclick=rvask;$('#rvgo').onclick=rvgo;$('#rvc').addEventListener('keydown',e=>{if(e.key==='Enter')rvgo()});
+setInterval(()=>{if(S&&!S.over&&!MP.r&&Math.random()<.45){const n=NPC[Math.floor(R(0,NPC.length))],v=P[Math.floor(R(0,P.length))];toast(n+' หลอก '+v.n+' ได้ $'+Math.round(R(30,v.b)))}},9000);
+
+function mpSync(){const r=MP.r;if(!r)return;const g=!!S&&MP.phase==='play',p={g:'scamos',n:MP.name,t:MP.t,mx:MP.max,ph:MP.phase==='play'?'p':'l',rd:MP.ready?1:0,m:g?S.money|0:0,q:g?S.q|0:0,h:g?Math.min(100,Math.round(S.heat)):0,c:g?S.calls|0:0,x:0,du:+$('#hdur').value||12,d:g?S.day|0:1,f:MP.done?1:0,o:g&&S.over?1:0},k=JSON.stringify(p);if(k===MP.last)return;MP.last=k;r.presence(p).catch(()=>{})}
+function mpFeed(t){if(MP.r)MP.r.emit('feed',{n:MP.name,t:t}).catch(()=>{})}
+const byT=(a,b)=>((+a.presence.t||0)-(+b.presence.t||0))||(a.peer<b.peer?-1:1);
+function mpPeers(){return MP.r?MP.r.peers().filter(p=>p.kind==='viewer'&&p.presence&&p.presence.g==='scamos'):[]}
+function mpHost(){return mpPeers().filter(p=>p.presence.ph==='l').sort(byT)[0]||null}
+function mpDraw(){
+  const l=$('#mpl');if(!l||!MP.r)return;
+  const all=mpPeers().sort(byT),host=mpHost(),amHost=!!host&&host.isMe&&host.sameTab,cap=(all[0]&&(+all[0].presence.mx||0))||MP.max||4;
+  l.innerHTML='';
+  const add=(txt,me)=>{const d=document.createElement('div');d.className='stp';if(me)d.style.cssText='border-left:3px solid var(--ac);font-weight:700';d.textContent=txt;l.appendChild(d)};
+  if(MP.phase==='lobby'){
+    const lp=all.filter(p=>p.presence.ph==='l'),rd=lp.filter(p=>p.presence.rd).length;
+    all.forEach(p=>{const q=p.presence,hs=host&&p.peer===host.peer;add((hs?'👑 ':'')+String(q.n||'ไม่ระบุชื่อ').slice(0,14)+(p.isMe?' (คุณ)':'')+' · '+(q.ph==='p'?'🎮 กำลังเล่นอยู่':hs?'หัวห้อง':q.rd?'✅ พร้อม':'⏳ ยังไม่พร้อม'),p.isMe)});
+    $('#mph').textContent='ล็อบบี้ห้อง "'+MP.code+'" · '+all.length+'/'+cap+' คน · พร้อมแล้ว '+rd+'/'+Math.max(0,lp.length-(host?1:0))+(!amHost&&host?' · รอหัวห้องกดเริ่ม':'');
+    $('#mps').classList.toggle('hide',!amHost);$('#mpq').classList.toggle('hide',amHost);
+    $('#mpq').textContent=MP.ready?'↩ ยังไม่พร้อม':'✋ พร้อมแล้ว';{const du=host?+host.presence.du:0;if(DURS.includes(du)&&!amHost)$('#hdur').value=String(du);$('#hdur').disabled=!amHost&&!!host;durHint()}
+  }
+}
+function showHome(w){$('#hm').classList.toggle('hide',w!=='menu');$('#hmp').classList.toggle('hide',w!=='mp')}
+function enterGame(){
+  $('#home').classList.add('hide');document.body.classList.remove('home');
+  $('#w-ph').classList.remove('hide');$('#w-cd').classList.remove('hide');$('#w-rv').classList.add('hide');
+  unlock();startDay(1,SET.q);
+}
+function goHome(){
+  stopPlay();stopSay();stopMic();clearClips();clearTimers();
+  $('#dark').classList.add('hide');$('#w-bs').classList.add('hide');$('#inc').classList.add('hide');
+  S=null;C=null;boss='';MP.done=0;clearTimeout(MP.wt);clearTimeout(MP.ft);MP.waiting=false;MP.bossing=false;
+  $('#home').classList.remove('hide');document.body.classList.add('home');
+  if(MP.r){MP.phase='lobby';MP.ready=0;MP.last='';mpSync();showHome('mp');mpDraw()}else showHome('menu');
+}
+function mpStart(d){
+  if(!MP.r||MP.phase!=='lobby')return;
+  if(!sample){$('#hnoai').classList.remove('hide');return}
+  d=d||{};SET.dur=DURS.includes(+d.dur)?+d.dur:12;SET.n=clamp(+d.n||1,1,8)|0;SET.q=clamp(+d.q||0,100,20000)||quotaFor(SET.dur,SET.n);MP.phase='play';MP.ready=0;MP.done=0;MP.revs={};MP.round=0;enterGame();mpSync();
+}
+async function mpJoin(){
+  const e=$('#mpe');e.textContent='';
+  const nm=$('#mpn').value.trim().slice(0,14),code=$('#mpc').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,12);
+  if(!nm){e.textContent='ใส่ชื่อเล่นก่อน';return}
+  if(!code){e.textContent='ใส่รหัสห้อง หรือกด 🎲 สุ่มรหัส';return}
+  if(!sample){$('#hnoai').classList.remove('hide');return}
+  e.textContent='กำลังเข้าห้อง...';let r=null;
+  try{
+    const room=await claude.use('room');
+    if(!room){e.textContent='ห้องออนไลน์ใช้ไม่ได้ ต้องเปิดผ่านลิงก์ artifact และล็อกอิน claude.ai';return}
+    r=await room.join('scam-'+code);
+    MP.r=r;MP.name=nm;MP.code=code;MP.last='';MP.phase='lobby';MP.ready=0;MP.t=Date.now();MP.max=+$('#mpmx').value||4;
+    r.onPeers(()=>{mpDraw();mpCheck();mpSkipCheck()});
+    r.on('feed',m=>{if(m.sameTab)return;const d=m.data||{};toast('👥 '+String(d.n||'?').slice(0,14)+' '+String(d.t||'').slice(0,60))});
+    r.on('start',m=>{const h=mpHost();if(h&&m.peer===h.peer)mpStart(m.data)});
+    r.on('rev',m=>{const d=m.data;if(!d||typeof d!=='object')return;MP.revs[m.peer]={rn:+d.rn||0,n:String(d.n||'?').slice(0,14),m:+d.m||0,q:+d.q||0,ok:d.ok?1:0,s:(Array.isArray(d.s)?d.s:[]).slice(0,3).map(cleanShot)};mpCheck()});
+    r.on('boss',m=>{const d=m.data;if(!d||typeof d!=='object')return;if(d.k==='tier'){MP.tier=d;return}if(MP.waiting&&Array.isArray(d.ps))mpPlayBoss(d)});
+    r.on('skip',m=>{const d=m.data;if(!d||+d.rn!==MP.round)return;MP.skv=MP.skv||{};MP.skv[m.peer]=1;mpSkipCheck()});
+    mpSync();await sleep(1300);
+    const all=mpPeers().sort(byT),i=all.findIndex(p=>p.isMe&&p.sameTab),cap=(all[0]&&(+all[0].presence.mx||0))||MP.max;
+    if(i>=cap){MP.r=null;MP.phase='';await r.leave();e.textContent='ห้องเต็มแล้ว (รับ '+cap+' คน) ลองรหัสอื่น';return}
+    $('#mpj').classList.add('hide');$('#mpi').classList.remove('hide');$('#hback').classList.add('hide');e.textContent='';
+    mpDraw();toast('👥 เข้าห้อง '+code+' แล้ว ส่งรหัสนี้ให้เพื่อนได้เลย',5000);
+  }catch(x){if(MP.r===r){MP.r=null;MP.phase=''}e.textContent='เข้าห้องไม่สำเร็จ ลองใหม่อีกครั้ง'}
+}
+async function mpLeave(){const r=MP.r;MP.r=null;MP.phase='';MP.ready=0;if(r)try{await r.leave()}catch(e){}$('#hdur').disabled=false;durHint();$('#mpi').classList.add('hide');$('#mpj').classList.remove('hide');$('#hback').classList.remove('hide');$('#mpe').textContent=''}
+
+const cleanShot=x=>({w:String(x&&x.w||'').slice(0,20),e:String(x&&x.e||'').slice(0,8),l:String(x&&x.l||'').slice(0,60),r:String(x&&x.r||'').slice(0,80),h:(Array.isArray(x&&x.h)?x.h:[]).slice(0,4).map(t=>[t&&t[0]==='me'?'me':'ai',String(t&&t[1]||'').slice(0,60)])});
+const jsz=o=>new TextEncoder().encode(JSON.stringify(o)).length;
+function mpLead(){return mpPeers().filter(p=>p.presence.ph==='p'&&!p.presence.o).sort(byT)[0]||null}
+function mpShots(){
+  let L=S.log.filter(x=>x.h&&x.h.length);if(L.length<2)L=S.log.filter(x=>x.l&&x.l!=='-');
+  const sc=x=>{const g=gd(x.r),m=+((x.r.match(/\$(\d+)/)||[])[1]||0);return g==='g'?100+m:g==='b'?(/อายัด|SMS|จับได้|ไวรัส|วางสาย/.test(x.r)?90:60):0};
+  const G=L.filter(x=>gd(x.r)==='g').sort((a,c)=>sc(c)-sc(a)),B=L.filter(x=>gd(x.r)==='b').sort((a,c)=>sc(c)-sc(a));
+  let pk=[...G.slice(0,1),...B.slice(0,1),...G.slice(1,2),...B.slice(1,2)].slice(0,3);if(!pk.length)pk=L.slice(-2);
+  return pk.map(x=>cleanShot({w:x.w,e:x.e,l:x.l,r:x.r,h:(x.h||[]).filter(t=>t[1]&&t[1][0]!=='[').slice(-3)}));
+}
+function mpReview(){
+  clearTimers();stopSay();rvOk=S.money>=S.q;rvOut=null;MP.rk='';MP.waiting=true;MP.bossing=false;
+  $('#w-bs').classList.add('hide');$('#dark').classList.remove('hide');
+  ['#bres','#mcap','#mcam','#mtc'].forEach(q=>$(q).textContent='');$('#bctl').innerHTML='';$('#mchat').innerHTML='';$('#bsub').className='';
+  $('#bsub').textContent='🧑‍💼 ส่งฟุตเทจให้บอสแล้ว รอเพื่อนจบกะ...';
+  const d={rn:MP.round,n:MP.name,m:S.money|0,q:S.q|0,ok:rvOk?1:0,s:mpShots()};while(jsz(d)>3800&&d.s.length)d.s.pop();
+  MP.r.emit('rev',d).catch(()=>{});
+  clearTimeout(MP.wt);clearTimeout(MP.ft);
+  MP.ft=setTimeout(()=>{const l=mpLead();if(MP.waiting&&l&&l.isMe&&l.sameTab)runBoss()},90000);
+  MP.wt=setTimeout(()=>{if(MP.waiting){MP.waiting=false;MP.solo=1;review()}},150000);
+  mpCheck();
+}
+function mpCheck(){
+  if(!MP.r||!MP.waiting||MP.bossing)return;
+  const need=mpPeers().filter(p=>p.presence.ph==='p'&&!p.presence.o),ok=p=>MP.revs[p.peer]&&MP.revs[p.peer].rn===MP.round,got=need.filter(ok),me=need.find(p=>p.isMe&&p.sameTab),lead=mpLead(),amLead=!!lead&&lead.isMe&&lead.sameTab;
+  $('#bsub').textContent='🧑‍💼 บอสรอลูกน้องจบกะ ('+got.length+'/'+need.length+')  '+need.map(p=>(ok(p)?'✅ ':'⏳ ')+String(p.presence.n||'?').slice(0,14)).join('  ');
+  const c=$('#bctl');c.innerHTML='';
+  if(amLead){const b=document.createElement('button');b.className='pri';b.textContent='▶ บอสเริ่มดูเลย (ไม่รอแล้ว)';b.onclick=runBoss;c.append(b)}
+  if(amLead&&me&&ok(me)&&got.length>=need.length)runBoss();
+}
+async function runBoss(){
+  if(MP.bossing||!MP.waiting)return;MP.bossing=true;$('#bctl').innerHTML='';$('#bsub').textContent='🧑‍💼 บอสกำลังเปิดฟุตเทจของทุกคน...';
+  const L=Object.entries(MP.revs).filter(([k,v])=>v.rn===MP.round).map(([k,v])=>({k,...v})).sort((a,c)=>c.m-a.m);
+  let out=null;
+  try{
+    const lg=L.map((v,i)=>'ผู้เล่น '+i+' ชื่อ "'+v.n+'" ทำได้ $'+v.m+' จากเป้า $'+v.q+' ('+(v.ok?'ผ่าน':'ไม่ผ่าน')+') อยู่ tier '+TIERS[tierOf(v.m,v.q)]+'\n'+v.s.map((x,j)=>'  ช็อต '+i+'.'+j+' ['+x.w+'] ['+({g:'ผลดี',b:'ผลแย่',n:'ผลกลาง'})[gd(x.r)]+'] พูด: "'+x.l+'" ผล: '+x.r).join('\n')).join('\n');
+    const pr='คุณคือบอสคอลเซ็นเตอร์สแกมสมมติ ปากร้าย ตลกร้าย (ล้อเลียนในเกม ไม่ใช่ของจริง) นั่งดูฟุตเทจลูกน้องหลายคนในห้องมืด และลูกน้องทุกคนนั่งดูพร้อมกัน. ความจำเดิม: '+(boss||'ไม่มี')+'\nผลวันนี้ เรียงจากยอดมากไปน้อย:\n'+lg+'\n\nเลือกไฮไลท์ '+(L.length<=1?3:L.length<=3?4:L.length<=6?5:6)+' ช็อต กระจายหลายคนให้มากที่สุด (อ้างด้วย p=เลขผู้เล่น s=เลขช็อต) ถ้ามีทั้งผลดีและแย่ให้มีทั้งสองฝั่ง ช็อตดี tone="praise" ชมจริงจังแบบบอสปากหมา แซะได้นิดเดียว ช็อตแย่ tone="roast" ด่าแรงดิบ ๆ ใช้ มึง/กู ไอ้เหี้ย ไอ้สัส ได้ ชี้ว่าพลาดตรงไหนจากสิ่งที่พูดจริง ขึ้นต้นด้วยชื่อผู้เล่นเสมอ เทียบกับเพื่อนในห้องได้ เช่น คนที่ 1 ทำได้เยอะกว่า ห้ามเหยียดเชื้อชาติ ศาสนา เพศ ความพิการ รูปร่างหน้าตา ห้ามแต่งเหตุการณ์ที่ไม่มีในบันทึก แต่ละช็อตไม่เกิน 2 ประโยค. intro=ประโยคเปิดห้องสั้น ๆ. tier=ตอนบอสเห็นตาราง tier list (S ดีสุด F แย่สุด) บ่นทุกคนคนละ 1 ประโยคสั้น ๆ ไม่เกิน 45 ตัวอักษร ขึ้นต้นด้วยชื่อ ด่าคำใหม่ทุกครั้งไม่ซ้ำสูตร คนอยู่ tier ล่างด่ายับ เช่น ทำอะไรไม่ได้เลย คนอยู่ tier บนชมปนแซะ. verdict=สรุป 1-2 ประโยค ชมที่ 1 ด่าที่โหล่ บอกใครผ่านใครไม่ผ่าน. memory=ความจำใหม่ 1 ประโยค. JSON เท่านั้น: {"intro":"...","tier":[{"p":0,"x":"..."}],"picks":[{"p":0,"s":0,"tone":"praise หรือ roast","roast":"..."}],"verdict":"...","memory":"..."}';
+    const r=await sample(pr,{cache:false});out=JSON.parse(r.text.match(/\{[\s\S]*\}/)[0]);
+  }catch(e){}
+  const ps=L.map(v=>({k:v.k,n:v.n,m:v.m,q:v.q}));let picks=[],intro='',verdict='';
+  if(out&&Array.isArray(out.picks)){picks=out.picks.slice(0,L.length<=1?3:L.length<=3?4:L.length<=6?5:6).map(k=>({p:+k.p|0,s:+k.s|0,t:k.tone==='praise'?'praise':'roast',x:String(k.roast||'').slice(0,240)})).filter(k=>L[k.p]&&L[k.p].s[k.s]);intro=String(out.intro||'').slice(0,200);verdict=String(out.verdict||'').slice(0,260);boss=String(out.memory||boss)}
+  if(!picks.length&&L.length){
+    const a=L[0],z=L[L.length-1];intro='เปิดฟุตเทจทุกคนพร้อมกัน นั่งดูให้ดี ๆ ไอ้พวกลูกน้อง';
+    if(a.s[0])picks.push({p:0,s:0,t:'praise',x:a.n+' ทำได้ $'+a.m+' ไอ้สัส แอบเก่งว่ะ แต่อย่าเพิ่งหลงตัวเอง'});
+    if(L.length>1&&z.s[0])picks.push({p:L.length-1,s:0,t:'roast',x:z.n+' ได้แค่ $'+z.m+' ไอ้เหี้ย เพื่อนมึงดูดไปเยอะกว่านี้แล้ว'});
+    verdict='ที่หนึ่งคือ '+a.n+' ส่วนที่โหล่คือ '+z.n+' ไป ๆ มา ๆ ตั้งใจทำงานหน่อยไอ้พวกขี้เกียจ';
+  }
+  let tr=(out&&Array.isArray(out.tier)?out.tier:[]).slice(0,8).map(k=>({p:+k.p|0,x:String(k.x||'').slice(0,90)})).filter(k=>L[k.p]&&k.x);
+  if(!tr.length&&L.length){const a1=L[0],z1=L[L.length-1];tr=[{p:L.length-1,x:z1.n+' ได้แค่ $'+z1.m+' ไอ้เหี้ย ทำอะไรไม่ได้เลย!!'}];if(L.length>1)tr.push({p:0,x:a1.n+' $'+a1.m+' เก่งนี่หว่า แต่อย่าเพิ่งเหิม'})}
+  const d={k:'hl',ps,intro,verdict,picks};while(jsz(d)>3800&&d.picks.length)d.picks.pop();
+  const tm={k:'tier',rn:MP.round,ps,tr};while(jsz(tm)>3800&&tm.tr.length)tm.tr.pop();
+  MP.r.emit('boss',tm).catch(()=>{});await sleep(300);
+  MP.r.emit('boss',d).catch(()=>{MP.bossing=false});
+}
+function mpPlayBoss(d){
+  const T=MP.tier&&MP.tier.rn===MP.round?MP.tier:null;MP.tier=null;MP.waiting=false;MP.bossing=false;MP.round++;clearTimeout(MP.wt);clearTimeout(MP.ft);
+  const ps=d.ps.slice(0,8).map(v=>({k:String(v&&v.k||''),n:String(v&&v.n||'?').slice(0,14)}));
+  rvOut={intro:String(d.intro||'').slice(0,240),verdict:String(d.verdict||'').slice(0,300),picks:(Array.isArray(d.picks)?d.picks:[]).slice(0,6).map(k=>{
+    const o=ps[+k.p|0]||{k:'',n:'?'},v=MP.revs[o.k],sh=v&&v.s[+k.s|0]||{w:'?',e:'',l:'-',r:'(ไม่มีฟุตเทจ)',h:[]};
+    return{x:{...sh,o:o.n},tone:k.t==='praise'?'praise':'roast',roast:String(k.x||'').slice(0,240)}})};
+  const me=mpPeers().find(p=>p.isMe&&p.sameTab),i=me?ps.findIndex(v=>v.k===me.peer):-1;MP.rk=i>=0&&ps.length>1?'  ·  อันดับ '+(i+1)+'/'+ps.length:'';if(T)rvOut.tier=mkTier(T,me&&me.peer);
+  MP.rvMulti=1;playReview();
+}
+
+const TIERS=['S','A','B','C','D','E','F'],TCOL=['#ff7f7f','#ffbf7f','#ffff7f','#7fff7f','#7fbfff','#7f7fff','#ff7fff'];
+function tierOf(m,q){const r=q>0?m/q:0;return r>=1.6?0:r>=1.25?1:r>=1?2:r>=.75?3:r>=.5?4:r>=.25?5:6}
+function mkTier(T,mine){
+  const ps=(Array.isArray(T.ps)?T.ps:[]).slice(0,8).map(v=>({n:String(v&&v.n||'?').slice(0,14),m:+(v&&v.m)||0,q:+(v&&v.q)||0,me:!!mine&&!!v&&v.k===mine,x:''}));
+  (Array.isArray(T.tr)?T.tr:[]).slice(0,8).forEach(k=>{const o=ps[+k.p|0];if(o)o.x=String(k.x||'').slice(0,90)});
+  return{ps};
+}
+async function showTier(tr,t){
+  const live=()=>t===playTok,box=$('#tier'),t0=Date.now();
+  try{
+    $('#mon').classList.add('hide');box.classList.remove('hide');box.innerHTML='';
+    const rows=TIERS.map((L,i)=>{const r=document.createElement('div'),l=document.createElement('div'),c=document.createElement('div');r.className='tr';l.className='tl';l.textContent=L;l.style.background=TCOL[i];c.className='tc';r.append(l,c);box.appendChild(r);return c});
+    const cs=[];
+    for(const v of tr.ps.slice().sort((a,c)=>a.m-c.m)){
+      if(!live())return false;
+      const ch=document.createElement('div'),nm=document.createElement('div'),mo=document.createElement('small');
+      ch.className='chip'+(v.me?' me':'');nm.textContent=v.n+(v.me?' (คุณ)':'');mo.textContent='$'+v.m;ch.append(nm,mo);
+      rows[tierOf(v.m,v.q)].prepend(ch);cs.push({el:ch,v});await sleep(220);
+    }
+    let played=0;
+    for(const c of cs){
+      if(!c.v.x)continue;
+      if(played&&(Date.now()-t0)+c.v.x.length*45+400>9500)break;
+      if(!live())return false;
+      c.el.classList.add('hl');played++;
+      await bossSay(c.v.x,tierOf(c.v.m,c.v.q)<=2?'praise':'roast',t);
+      c.el.classList.remove('hl');
+    }
+    const rest=8000-(Date.now()-t0);if(rest>0)await sleep(rest);
+    return live();
+  }finally{box.classList.add('hide');$('#mon').classList.remove('hide')}
+}
+
+const DURS=[8,12,16,20,24],SET={dur:12,q:0,n:1};
+function quotaFor(min,n){return Math.max(100,Math.round(min*R(55,85)*(1+.15*(Math.max(1,n)-1))/50)*50)}
+function durHint(){const m=+$('#hdur').value||12,n=MP.r&&MP.phase==='lobby'?Math.max(1,mpPeers().filter(p=>p.presence.ph==='l').length):1,f=1+.15*(n-1);$('#hdh').textContent='เป้าประมาณ $'+Math.round(m*55*f/50)*50+'–$'+Math.round(m*85*f/50)*50+(n>1?' (ผู้เล่น '+n+' คน เป้าเพิ่มขึ้น)':'')}
+$('#hdur').onchange=()=>{mpSync();durHint()};durHint();
+function cutLine(){
+  toast('⏰ เหลือ 8 วินาที ระบบตัดสายทั้งหมด!',4000);$('#inc').classList.add('hide');
+  if(C&&C.pend){C.pend=false;C=null;upd();return}
+  if(C&&!C.end){stopSay();S.log.push({w:C.p.n,l:last(),c:lc(),a:la(),h:hc(),e:C.p.e,r:'หมดเวลา โดนตัดสายตอนยังคุยไม่จบ'+(C.took?' (ถอนไปแล้ว $'+C.took+')':'')});endCall('⏰ หมดเวลา ระบบตัดสายแล้ว')}
+}
+function tick(){
+  const k=$('#clk');
+  if(!S||S.over||!S.end){k.textContent='';return}
+  if(S.ended){k.textContent='⏱ 00:00';return}
+  const ms=S.end-Date.now(),sec=Math.max(0,Math.ceil(ms/1000));
+  k.textContent='⏱ '+String(sec/60|0).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');k.style.color=sec<=30?'#ff6b6b':'';
+  if(sec<=30&&!S.w30){S.w30=1;toast('⏰ เหลือ 30 วินาที',3000)}
+  if(sec<=8&&!S.closing){S.closing=1;cutLine()}
+  if(ms<=0){S.ended=1;endDay()}
+}
+setInterval(tick,250);
+$('#hsolo').onclick=()=>{if(!sample){$('#hnoai').classList.remove('hide');return}SET.dur=+$('#hdur').value||12;SET.n=1;SET.q=quotaFor(SET.dur,1);enterGame()};
+$('#hmulti').onclick=()=>showHome('mp');$('#hback').onclick=()=>{if(!MP.r)showHome('menu')};
+$('#mpgo').onclick=mpJoin;$('#mpx').onclick=mpLeave;
+$('#mpq').onclick=()=>{if(MP.phase!=='lobby')return;MP.ready=!MP.ready;mpSync();mpDraw()};
+$('#mps').onclick=()=>{if(!MP.r||MP.phase!=='lobby')return;if(!MP.r.connected()){toast('ยังเชื่อมต่อห้องไม่ได้ ลองอีกครั้ง');return}MP.r.emit('start',{ts:Date.now(),dur:+$('#hdur').value||12,n:Math.max(1,mpPeers().filter(p=>p.presence.ph==='l').length),q:quotaFor(+$('#hdur').value||12,Math.max(1,mpPeers().filter(p=>p.presence.ph==='l').length))}).catch(()=>toast('ส่งคำสั่งเริ่มไม่สำเร็จ ลองอีกครั้ง'))};
+$('#mpr').onclick=()=>{$('#mpc').value=Math.random().toString(36).slice(2,6)};
+$('#mpc').addEventListener('keydown',e=>{if(e.key==='Enter')mpJoin()});
+upd=(o=>function(){if(!S)return;o();mpSync()})(upd);
+function webDict(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return null;let rec=null,fh=()=>{},sh=()=>{};return{web:true,onFinal:f=>{fh=f},onState:f=>{sh=f},async start(){rec=new SR();rec.lang='th-TH';rec.continuous=true;rec.interimResults=false;rec.onstart=()=>sh({state:'listening'});rec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)fh({text:e.results[i][0].transcript})};rec.onend=()=>sh({state:'idle',reason:'stopped'});rec.onerror=ev=>{if(ev.error!=='no-speech'&&ev.error!=='aborted')toast('🎤 ไมค์ใช้ไม่ได้: '+ev.error+' (ลองกดไมค์บนแป้นพิมพ์มือถือแทน)',6000)};rec.start()},async stop(){try{rec&&rec.stop()}catch(e){}}}}
+(async()=>{
+  try{sample=await claude.use('sample')}catch(e){}
+  try{let d=null;try{d=await claude.use('dictation')}catch(e){}if(!d)d=webDict();if(d){dict=d;const m=$('#mic');m.classList.remove('hide');m.style.touchAction='manipulation';m.style.userSelect='none';m.style.webkitUserSelect='none';m.addEventListener('contextmenu',e=>e.preventDefault());
+    d.onFinal(({text})=>{dictUsed=true;$('#inp').value=($('#inp').value+' '+text).trim()});
+    d.onState(({state})=>{if(state==='listening')seenL=true;else if(micOn&&seenL){seenL=false;stopMic()}});
+    m.onclick=micToggle}}catch(e){}
+})();
+$('#msnd').onclick=function(){snd=!snd;this.textContent=snd?'🔊':'🔇';if(!snd){stopSay();return}
+  const ss=window.speechSynthesis;if(!ss){toast('❌ เบราว์เซอร์นี้ไม่รองรับเสียงพูด',7000);return}
+  const vs=ss.getVoices(),th=vs.filter(v=>/^th/i.test(v.lang));toast('🔊 เสียงทั้งหมด '+vs.length+' · เสียงไทย '+th.length,7000);
+  const u=new SpeechSynthesisUtterance('ทดสอบเสียงครับ');u.lang='th-TH';if(th[0])u.voice=th[0];u.onerror=ev=>toast('⚠️ เสียงผิดพลาด: '+ev.error,7000);ss.speak(u)};
+</script></body></html>
