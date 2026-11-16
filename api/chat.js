@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + process.env.DEEPSEEK_API_KEY },
       body: JSON.stringify({
-        model: process.env.DEEPSEEK_MODEL || 'deepseek-chat', // เช็กชื่อโมเดลล่าสุดในเอกสาร DeepSeek
+        model: process.env.DEEPSEEK_MODEL || 'deepseek/deepseek-v4-flash', // เช็กชื่อโมเดลล่าสุดในเอกสาร DeepSeek
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 1200,
       }),
