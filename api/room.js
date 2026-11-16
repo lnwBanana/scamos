@@ -18,6 +18,7 @@ async function pipe(cs) {
 }
 
 module.exports = async (req, res) => {
+  if (req.method === 'GET') return res.status(200).json({ ok: true, redis: !!(URL_ && TOKEN) }); // เปิด /api/room ในเบราว์เซอร์เพื่อเช็ก
   if (!URL_ || !TOKEN) return res.status(500).json({ error: 'ยังไม่ได้เชื่อม Upstash Redis กับโปรเจกต์ (Vercel > Storage)' });
   if (req.method !== 'POST') return res.status(405).json({});
   const b = req.body || {};
@@ -28,11 +29,3 @@ module.exports = async (req, res) => {
   const now = Date.now();
   try {
     if (b.op === 'emit') {
-      const topic = String(b.topic || '').replace(/[^a-z0-9_-]/gi, '').slice(0, 16);
-      const raw = JSON.stringify(b.data === undefined ? null : b.data);
-      if (!topic || raw.length > 6000) return res.status(400).json({ error: 'bad message' });
-      const id = await cmd(['INCR', kS]);
-      await pipe([
-        ['RPUSH', kM, JSON.stringify({ id, peer, topic, data: b.data === undefined ? null : b.data })],
-        ['LTRIM', kM, '-60', '-1'], ['EXPIRE', kM, '7200'], ['EXPIRE', kS, '7200'],
-      ]);
